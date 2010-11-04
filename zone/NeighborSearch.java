@@ -206,33 +206,27 @@ public class NeighborSearch {
 				starV.add(values.next().get(0));
 			}
 			System.out.println(key + ": " + starV.size() + " stars");
+			int num = 0;
 			for (int i = 0; i < starV.size(); i++) {
-				for (int j = 0; j < starV.size(); j++) {
-					if (i != j) {
-						Star star1 = starV.get(i);
-						Star star2 = starV.get(j);
-						if (star1.objID < star2.objID) {
-							if (star1.margin == false
-									&& star1.ra >= star2.ra
-											- maxAlphas[key.zoneNum]
-									&& star1.ra <= star2.ra
-											+ maxAlphas[key.zoneNum]
-									&& star1.dec >= star2.dec - theta
-									&& star1.dec <= star2.dec + theta
-									&& star1.x * star2.x + star1.y * star2.y
-											+ star1.z * star2.z > Math.cos(Math
-											.toRadians(theta))) {
-								output.collect(key, new PairWritable(star1,
-										star2));
-								if (star2.margin == false) {
-									output.collect(key, new PairWritable(star2,
-											star1));
-								}
-							}
-						}
+				for (int j = i + 1; j < starV.size(); j++) {
+					Star star1 = starV.get(i);
+					Star star2 = starV.get(j);
+					if (star1.margin && star2.margin)
+						continue;
+
+					if (star1.ra >= star2.ra - maxAlphas[key.zoneNum]
+							&& star1.ra <= star2.ra + maxAlphas[key.zoneNum]
+							&& star1.dec >= star2.dec - theta
+							&& star1.dec <= star2.dec + theta
+							&& star1.x * star2.x + star1.y * star2.y + star1.z
+									* star2.z > Math.cos(Math.toRadians(theta))) {
+						output.collect(key, new PairWritable(star1, star2));
+						output.collect(key, new PairWritable(star2, star1));
+						num += 2;
 					}
 				}
 			}
+			System.out.println("num: " + num);
 		}
 	}
 
