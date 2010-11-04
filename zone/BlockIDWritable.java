@@ -10,6 +10,21 @@ public class BlockIDWritable implements WritableComparable<BlockIDWritable> {
 	public int zoneNum;
 	public int raNum;
 	
+	public BlockIDWritable() {
+		
+	}
+	
+	public BlockIDWritable(double ra, double dec) {
+		raNum = (int) (ra / NeighborSearch.blockWidth);
+		if (raNum == NeighborSearch.numBlocks) {
+			raNum--;
+		}
+		
+		zoneNum = (int) ((dec + 90) / NeighborSearch.zoneHeight);
+		if (zoneNum == NeighborSearch.numZones)
+			zoneNum--;
+	}
+	
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		zoneNum = in.readInt();

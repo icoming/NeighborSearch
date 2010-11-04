@@ -13,10 +13,10 @@ import zone.io.StarInputFormat;
  * bcp "SELECT TOP 100000 * FROM [BestDR7].[dbo].[Zone]" queryout zone100000 -n -Sgw20 -T */
 
 public class NeighborSearch {
-	static private final int numZones = 180;
-	static private int blockWidth = 1;
-	static private int zoneHeight = 1;
-	static private final int numBlocks = 360;
+	static public final int numZones = 360;
+	static public final int numBlocks = 720;
+	static public double blockWidth = 360.0 / numBlocks;
+	static public double zoneHeight = 180.0 / numZones;
 	// TODO for different zones, the block width can also be different.
 	static private double blockRanges[][] = new double[numBlocks][2];
 	// TODO I might need different zone height for different zones
@@ -24,26 +24,6 @@ public class NeighborSearch {
 	static private double maxAlphas[] = new double[numZones];
 	static private double theta = 0.1;
 	
-	/**
-	 * convert a radian to the block number in the horizon
-	 */
-	static public int ra2Num(double ra) {
-		int num = (int) ra / blockWidth;
-		if (num == numBlocks)
-			return num - 1;
-		return num;
-	}
-
-	/**
-	 * convert the latitude to a zone number
-	 */
-	static public int dec2Num(double dec) {
-		int num = (int) ((dec + 90) / zoneHeight);
-		if (num == numZones)
-			return num - 1;
-		return num;
-	}
-
 	static public double calAlpha(double theta, double dec) {
 		if (Math.abs(dec) + theta > 89.9)
 			return 180;
@@ -87,19 +67,11 @@ public class NeighborSearch {
 		public void map(LongWritable key, Star value,
 				OutputCollector<BlockIDWritable, PairWritable> output,
 				Reporter reporter) throws IOException {
-			int raNum = (int) value.ra / blockWidth;
-			if (raNum == numBlocks) {
-				raNum--;
-			}
-			
-			int zoneNum = (int) (value.dec + 90) / zoneHeight;
-			if (zoneNum == numZones)
-				zoneNum--;
 
+			BlockIDWritable loc = new BlockIDWritable(value.ra, value.dec);
+			int zoneNum = loc.zoneNum;
+			int raNum = loc.raNum;
 			value.zoneNum = zoneNum;
-			BlockIDWritable loc = new BlockIDWritable();
-			loc.zoneNum = zoneNum;
-			loc.raNum = raNum;
 			PairWritable p = new PairWritable(value, null);
 
 			/*
