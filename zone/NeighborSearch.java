@@ -15,6 +15,7 @@ import zone.io.StarInputFormat;
 public class NeighborSearch {
 	static public final int numZones = 360;
 	static public final int numBlocks = 720;
+	static public double theta = 0.2;
 	static public double blockWidth = 360.0 / numBlocks;
 	static public double zoneHeight = 180.0 / numZones;
 	// TODO for different zones, the block width can also be different.
@@ -22,7 +23,6 @@ public class NeighborSearch {
 	// TODO I might need different zone height for different zones
 	static private double zoneRanges[][] = new double[numZones][2];
 	static private double maxAlphas[] = new double[numZones];
-	static private double theta = 0.1;
 	
 	static public double calAlpha(double theta, double dec) {
 		if (Math.abs(dec) + theta > 89.9)
@@ -51,7 +51,7 @@ public class NeighborSearch {
 
 		for (int i = 0; i < maxAlphas.length; i++) {
 			double maxDec = zoneRanges[i][1];
-			if (maxDec < 0)
+			if (maxDec <= 0)
 				maxDec = zoneRanges[i][0];
 			maxAlphas[i] = calAlpha(theta, maxDec);
 		}
