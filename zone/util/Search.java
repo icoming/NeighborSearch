@@ -1,6 +1,7 @@
 package zone.util;
 
 import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -13,21 +14,15 @@ public class Search {
 		for (int i = 1; i < args.length; i++) {
 			ids[i - 1] = new Long(args[i]);
 		}
-		byte bytes[] = new byte[Star.storeSize];
 		Star star = new Star();
 		try {
-			BufferedInputStream in = new BufferedInputStream (new FileInputStream (args[0]));
-			while (true) {
-				int size = in.read(bytes);
-				if (size == -1) {
-//					System.out.println("cannot find the star");
-					return;
-				}
-				
-				star.set(bytes);
+			DataInputStream in = new DataInputStream(new BufferedInputStream (new FileInputStream (args[0])));
+			for (int j = 0; in.available() >= Star.storeSize; j++) {
+				star.set(in);
 				int i;
 				for (i = 0; i < ids.length; i++) {
 					if (star.objID == ids[i]) {
+						System.out.print("find it@" + j + ": ");
 						star.print();
 						break;
 					}

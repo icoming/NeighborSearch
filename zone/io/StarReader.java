@@ -1,5 +1,6 @@
 package zone.io;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -29,6 +30,7 @@ public class StarReader implements RecordReader<LongWritable, Star> {
 		// start of a new object
 		start = split.getStart();
 		end = start + split.getLength();
+		System.out.println("start: " + start + ", end: " + end);
 		final Path file = split.getPath();
 		compressionCodecs = new CompressionCodecFactory(job);
 		final CompressionCodec codec = compressionCodecs.getCodec(file);
@@ -73,17 +75,14 @@ public class StarReader implements RecordReader<LongWritable, Star> {
 		if (value == null) {
 			value = new Star();
 		}
-		int newSize = 0;
-		byte[] bytes = new byte[Star.storeSize];
-		newSize = in.read(bytes);
-		if (newSize < Star.storeSize || pos >= end) {
+		if (pos >= end || in.available() < Star.storeSize) {
 			key = null;
 			value = null;
 			return false;
 		}
 		
-		value.set(bytes);
-		pos += newSize;
+		value.set(new DataInputStream(in));
+		pos += Star.storeSize;
 		return true;
 	}
 

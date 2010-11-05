@@ -6,10 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import zone.BlockIDWritable;
+import zone.NeighborSearch;
 import zone.Star;
 
 public class Test {
-	private static double theta = 0.1;
 	public static void main (String[] args) {
 		int splitSize;	// the number of records
 		Star stars[];
@@ -25,7 +25,7 @@ public class Test {
 					break;
 				}
 				stars[i] = new Star();
-				stars[i].set(bytes);
+//				stars[i].set(bytes);
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -38,7 +38,7 @@ public class Test {
 		int num = 0;
 		for (int i = 0; i < splitSize; i++) {
 			for (int j = i + 1; j < splitSize; j++) {
-				if (stars[i].x * stars[j].x + stars[i].y * stars[j].y + stars[i].z * stars[j].z > Math.cos(Math.toRadians(theta))) {
+				if (stars[i].x * stars[j].x + stars[i].y * stars[j].y + stars[i].z * stars[j].z > Math.cos(Math.toRadians(NeighborSearch.theta))) {
 					BlockIDWritable loc = new BlockIDWritable(stars[i].ra, stars[i].dec);
 					System.out.println(loc + "\t(" + stars[i] + "," + stars[j] + ")");
 					System.out.println(loc + "\t(" + stars[j] + "," + stars[i] + ")");
