@@ -13,8 +13,8 @@ import zone.io.StarInputFormat;
  * bcp "SELECT TOP 100000 * FROM [BestDR7].[dbo].[Zone]" queryout zone100000 -n -Sgw20 -T */
 
 public class NeighborSearch {
-	static public final int numZones = 360;
-	static public final int numBlocks = 720;
+	static public final int numZones = 180;
+	static public final int numBlocks = 360;
 	static public double theta = 0.2;
 	static public double blockWidth = 360.0 / numBlocks;
 	static public double zoneHeight = 180.0 / numZones;
