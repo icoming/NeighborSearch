@@ -46,7 +46,7 @@ public class BlockIDWritable implements WritableComparable<BlockIDWritable> {
 	
 	@Override
 	public int hashCode() {
-		return zoneNum << 16 + raNum;
+		return (raNum) * 3;
 	}
 	
 	@Override
