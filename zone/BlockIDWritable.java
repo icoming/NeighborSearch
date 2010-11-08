@@ -13,16 +13,23 @@ public class BlockIDWritable implements WritableComparable<BlockIDWritable> {
 	public BlockIDWritable() {
 		
 	}
-	
-	public BlockIDWritable(double ra, double dec) {
-		raNum = (int) (ra / NeighborSearch.blockWidth);
+
+	static public int ra2Num (double ra) {
+		int raNum = (int) (ra / NeighborSearch.blockWidth);
 		if (raNum == NeighborSearch.numBlocks) {
 			raNum--;
 		}
-		
+		return raNum;
+	}
+	
+	public BlockIDWritable(double ra, double dec) {
 		zoneNum = (int) ((dec + 90) / NeighborSearch.zoneHeight);
 		if (zoneNum == NeighborSearch.numZones)
 			zoneNum--;
+		raNum = ra2Num (ra);
+		/* zones in the poles have only one block. */
+		if (zoneNum == 0 || zoneNum == NeighborSearch.numZones - 1)
+			raNum = 0;
 	}
 	
 	@Override

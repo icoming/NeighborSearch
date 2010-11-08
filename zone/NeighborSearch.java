@@ -18,9 +18,7 @@ public class NeighborSearch {
 	static public double theta = 0.2;
 	static public double blockWidth = 360.0 / numBlocks;
 	static public double zoneHeight = 180.0 / numZones;
-	// TODO for different zones, the block width can also be different.
 	static private double blockRanges[][] = new double[numBlocks][2];
-	// TODO I might need different zone height for different zones
 	static private double zoneRanges[][] = new double[numZones][2];
 	static private double maxAlphas[] = new double[numZones];
 	
@@ -107,14 +105,16 @@ public class NeighborSearch {
 				                          						&& value.ra <= blockRanges[raNum][1]
 				                          						&& value.dec >= zoneRanges[zoneNum][1] - theta
 				                          						&& value.dec <= zoneRanges[zoneNum][1]) {
-					BlockIDWritable loc1 = new BlockIDWritable();
-					loc1.raNum = loc.raNum + 1;
-					if (loc1.raNum == numBlocks) {
-						loc1.raNum = 0;
-						value.ra -= 360;
-					}
-					loc1.zoneNum = loc.zoneNum + 1;
-					output.collect(loc1, p);
+//					BlockIDWritable loc1 = new BlockIDWritable();
+					/* raNum of objects in zone 0 is always 0,
+					 * we need to recalculate it. */
+//					loc1.raNum = BlockIDWritable.ra2Num(value.ra) + 1;
+//					if (loc1.raNum == numBlocks) {
+//						loc1.raNum = 0;
+//						value.ra -= 360;
+//					}
+//					loc1.zoneNum = loc.zoneNum + 1;
+///					output.collect(loc1, p);
 				}
 				return;
 			} else if (loc.zoneNum == numZones - 1) {
@@ -122,14 +122,16 @@ public class NeighborSearch {
 				if (value.dec >= zoneRanges[zoneNum][0]
 				             						&& value.dec <= zoneRanges[zoneNum][0] + theta) {
 					BlockIDWritable loc1 = new BlockIDWritable();
-					loc1.raNum = loc.raNum;
+					/* raNum of objects in zone zoneNum - 1 is always 0,
+					 * we need to recalculate it. */
+					loc1.raNum = BlockIDWritable.ra2Num(value.ra);
 					loc1.zoneNum = loc.zoneNum - 1;
 					output.collect(loc1, p);
 
 					/* copy the object to the right bottom neighbor */
-					if (value.ra >= blockRanges[raNum][1] - maxAlphas[zoneNum]
-					                      							&& value.ra <= blockRanges[raNum][1]) {
-						loc1.raNum = loc.raNum + 1;
+					while (value.ra >= blockRanges[loc1.raNum][1] - maxAlphas[zoneNum]
+					                      							&& value.ra <= blockRanges[loc1.raNum][1]) {
+						loc1.raNum++;
 						if (loc1.raNum == numBlocks) {
 							loc1.raNum = 0;
 							value.ra -= 360;
@@ -141,13 +143,14 @@ public class NeighborSearch {
 				return;
 			}
 
+			BlockIDWritable loc1 = new BlockIDWritable();
+			boolean wrap = false;
+			loc1.raNum = loc.raNum;
 			/* copy the object to the right neighbor */
-			double blockRange1 = blockRanges[raNum][1];
-			double maxAlpha = maxAlphas[zoneNum];
-			if (value.ra >= blockRange1 - maxAlpha
-					&& value.ra <= blockRange1) {
-				BlockIDWritable loc1 = new BlockIDWritable();
-				loc1.raNum = loc.raNum + 1;
+			while (value.ra >= blockRanges[loc1.raNum][1] - maxAlphas[zoneNum]
+					&& value.ra <= blockRanges[loc1.raNum][1]) {
+				loc1.raNum++;
+				loc1.zoneNum = loc.zoneNum;
 				/*
 				 * when the object is copied to the right neighbor, we need to
 				 * be careful. we need to convert ra and raNum if ra is close to
@@ -156,8 +159,8 @@ public class NeighborSearch {
 				if (loc1.raNum == numBlocks) {
 					loc1.raNum = 0;
 					value.ra -= 360;
+					wrap = true;
 				}
-				loc1.zoneNum = loc.zoneNum;
 				output.collect(loc1, p);
 				/* copy the object to the right bottom neighbor */
 				if (value.dec >= zoneRanges[zoneNum][0]
@@ -171,20 +174,19 @@ public class NeighborSearch {
 					loc1.zoneNum = loc.zoneNum + 1;
 					output.collect(loc1, p);
 				}
-				if (loc1.raNum == 0) {
-					value.ra += 360;
-				}
+			}
+			if (wrap) {
+				value.ra += 360;
 			}
 
 			/* copy the object to the bottom neighbor */
 			if (value.dec >= zoneRanges[zoneNum][0]
 					&& value.dec <= zoneRanges[zoneNum][0] + theta) {
-				BlockIDWritable loc1 = new BlockIDWritable();
 				loc1.raNum = loc.raNum;
 				loc1.zoneNum = loc.zoneNum - 1;
-				if (loc1.zoneNum >= 0) {
-					output.collect(loc1, p);
-				}
+				if (loc1.zoneNum == 0)
+					loc1.raNum = 0;
+				output.collect(loc1, p);
 			}
 
 		}
@@ -203,7 +205,9 @@ public class NeighborSearch {
 				Reporter reporter) throws IOException {
 			Vector<Star> starV = new Vector<Star>();
 			while (values.hasNext()) {
-				starV.add(values.next().get(0));
+				Star s = values.next().get(0);
+				starV.add(s);
+				System.out.println(s);
 			}
 			System.out.println(key + ": " + starV.size() + " stars");
 			int num = 0;
@@ -226,7 +230,7 @@ public class NeighborSearch {
 					}
 				}
 			}
-			System.out.println("num: " + num);
+//			System.out.println("num: " + num);
 		}
 	}
 
