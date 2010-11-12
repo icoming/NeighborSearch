@@ -69,7 +69,6 @@ public class NeighborSearch {
 			BlockIDWritable loc = new BlockIDWritable(value.ra, value.dec);
 			int zoneNum = loc.zoneNum;
 			int raNum = loc.raNum;
-			value.zoneNum = zoneNum;
 			PairWritable p = new PairWritable(value, null);
 
 			/*

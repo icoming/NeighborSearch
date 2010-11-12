@@ -58,7 +58,7 @@ public class StarReader implements RecordReader<LongWritable, Star> {
 
 	@Override
 	public Star createValue() {
-		return new Star();
+		return Star.createStar();
 	}
 
 	@Override
@@ -73,16 +73,16 @@ public class StarReader implements RecordReader<LongWritable, Star> {
 		}
 		key.set(pos);
 		if (value == null) {
-			value = new Star();
+			value = Star.createStar();
 		}
-		if (pos >= end || in.available() < Star.storeSize) {
+		if (pos >= end || in.available() < value.size()) {
 			key = null;
 			value = null;
 			return false;
 		}
 		
 		value.set(new DataInputStream(in));
-		pos += Star.storeSize;
+		pos += Star.createStar().size();
 		return true;
 	}
 

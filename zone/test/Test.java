@@ -1,5 +1,6 @@
 package zone.test;
 
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -15,18 +16,16 @@ public class Test {
 		Star stars[];
 		try {
 			File file = new File (args[0]);
-			splitSize = (int) (file.length() / Star.storeSize);
-			FileInputStream in = new FileInputStream(args[0]);
+			splitSize = (int) (file.length() / Star.createStar().size());
+			System.out.println("there are " + splitSize + " stars");
+			DataInputStream in = new DataInputStream(new FileInputStream(args[0]));
 			stars = new Star[splitSize];
-			byte[] bytes = new byte[Star.storeSize];
-			for (int i = 0; i < splitSize; i++) {
-				int size = in.read(bytes);
-				if (size < bytes.length) {
-					break;
-				}
-				stars[i] = new Star();
-//				stars[i].set(bytes);
+			int i;
+			for (i = 0; i < splitSize; i++) {
+				stars[i] = Star.createStar();
+				stars[i].set(in);
 			}
+			System.out.println("read " + i + " stars");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			return;

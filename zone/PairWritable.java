@@ -32,10 +32,10 @@ public class PairWritable implements Writable {
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		isPair = in.readBoolean();
-		stars[0] = new Star();
+		stars[0] = Star.createStar();
 		stars[0].readFields(in);
 		if (isPair) {
-			stars[1] = new Star();
+			stars[1] = Star.createStar();
 			stars[1].readFields(in);
 		}
 	}
