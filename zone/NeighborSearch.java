@@ -15,7 +15,7 @@ import zone.io.StarInputFormat;
 public class NeighborSearch {
 	static public final int numZones = 180;
 	static public final int numBlocks = 360;
-	static public double theta = 0.2;
+	static public double theta = 1.0/6.0;
 	static public double blockWidth = 360.0 / numBlocks;
 	static public double zoneHeight = 180.0 / numZones;
 	static private double blockRanges[][] = new double[numBlocks][2];
@@ -32,7 +32,7 @@ public class NeighborSearch {
 						* Math.cos(Math.toRadians(dec + theta))))));
 	}
 	
-	static void init() {
+	public static void init() {
 		zoneRanges[0][0] = -90;
 		zoneRanges[0][1] = -90 + zoneHeight;
 		for (int i = 1; i < zoneRanges.length; i++) {
@@ -207,7 +207,6 @@ public class NeighborSearch {
 			while (values.hasNext()) {
 				Star s = values.next().get(0);
 				starV.add(s);
-				System.out.println(s);
 			}
 			System.out.println(key + ": " + starV.size() + " stars");
 			int num = 0;
@@ -244,6 +243,7 @@ public class NeighborSearch {
 		conf.setMapperClass(Map.class);
 		// conf.setCombinerClass(Reduce.class);
 		conf.setReducerClass(Reduce.class);
+		conf.setPartitionerClass(ZonePartitioner.class);
 
 		conf.setInputFormat(StarInputFormat.class);
 		conf.setOutputFormat(TextOutputFormat.class);
