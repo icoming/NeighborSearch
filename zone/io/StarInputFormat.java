@@ -2,6 +2,10 @@ package zone.io;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
@@ -20,7 +24,7 @@ import org.apache.hadoop.net.NetworkTopology;
 import zone.Star;
 
 public class StarInputFormat extends FileInputFormat<LongWritable, Star> {
-
+	
 	@Override
 	public org.apache.hadoop.mapred.RecordReader<LongWritable, Star> getRecordReader(
 			InputSplit split, JobConf job, Reporter reporter) throws IOException {
@@ -28,23 +32,78 @@ public class StarInputFormat extends FileInputFormat<LongWritable, Star> {
 		return new StarReader(job, (FileSplit) split);
 	}
 	
-	// TODO I need to rewrite this.
+	private class SplitInfo {
+		public long totLen;
+		public long splitLen;
+		public SplitInfo() {
+			totLen = 0;
+			splitLen = 0;
+		}
+	}
+
+	private static final double SPLIT_SLOP = 1.1;   // 10% slop
+
 	 /** Splits files returned by {@link #listStatus(JobConf)} when
 	   * they're too big.*/
 	 public InputSplit[] getSplits(JobConf job, int numSplits)
-	    throws IOException {
-	    FileStatus[] files = listStatus(job);
-	    ArrayList<FileSplit> splits = new ArrayList<FileSplit>(numSplits);
-	
-	    long totalSize = 0;                           // compute total size
-	    for (FileStatus file: files) {                // check we have valid files
-	      if (file.isDir()) {
-	        throw new IOException("Not a file: "+ file.getPath());
-	      }
-	      splits.add(new FileSplit(file.getPath(), 0, file.getLen(), job));
-	    }
+			throws IOException {
+		FileStatus[] files = listStatus(job);
 
-	    return splits.toArray(new FileSplit[splits.size()]);
+		long totalSize = 0; // compute total size
+		for (FileStatus file : files) { // check we have valid files
+			if (file.isDir()) {
+				throw new IOException("Not a file: " + file.getPath());
+			}
+			totalSize += file.getLen();
+		}
+
+		long goalSize = totalSize / (numSplits == 0 ? 1 : numSplits);
+		long minSize = job.getLong("mapred.min.split.size", 1);
+
+		// generate splits
+		ArrayList<FileSplit> splits = new ArrayList<FileSplit>(numSplits);
+		NetworkTopology clusterMap = new NetworkTopology();
+		int starSize = Star.createStar().size();
+		for (FileStatus file : files) {
+			Path path = file.getPath();
+			FileSystem fs = path.getFileSystem(job);
+			long length = file.getLen();
+			BlockLocation[] blkLocations = fs.getFileBlockLocations(file, 0,
+					length);
+			if ((length != 0) && isSplitable(fs, path)) {
+				long blockSize = file.getBlockSize();
+				long splitSize = computeSplitSize(goalSize, minSize, blockSize);
+				splitSize = (splitSize / starSize) * starSize; 
+
+				long bytesRemaining = length;
+				while (((double) bytesRemaining) / splitSize > SPLIT_SLOP) {
+					String[] splitHosts = getSplitHosts(blkLocations, length
+							- bytesRemaining, splitSize, clusterMap);
+					splits.add(new FileSplit(path, length - bytesRemaining,
+							splitSize, splitHosts));
+					bytesRemaining -= splitSize;
+				}
+
+				if (bytesRemaining != 0) {
+					splits.add(new FileSplit(path, length - bytesRemaining,
+							bytesRemaining,
+							blkLocations[blkLocations.length - 1].getHosts()));
+				}
+			} else if (length != 0) {
+				String[] splitHosts = getSplitHosts(blkLocations, 0, length,
+						clusterMap);
+				splits.add(new FileSplit(path, 0, length, splitHosts));
+			} else {
+				// Create empty hosts array for zero length files
+				splits.add(new FileSplit(path, 0, length, new String[0]));
+			}
+		}
+		System.out.println("split into " + splits.size() + " parts");
+		for (int i = 0; i < splits.size(); i++) {
+			System.out.println("split" + i + ": start " + splits.get(i).getStart()
+					+ ", end " + (splits.get(i).getStart() + splits.get(i).getLength()));
+		}
+		return splits.toArray(new FileSplit[splits.size()]);
 	  }
 
 }
