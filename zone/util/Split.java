@@ -16,12 +16,13 @@ public class Split {
 			int num = 0;
 			File file = new File(args[0]);
 			int splitSize;	// the number of records
-			splitSize = (int) ((file.length() + Star.storeSize - 1) / Star.storeSize / goalNumSplits);
-			if (splitSize > blockSize / Star.storeSize)
-				splitSize = blockSize / Star.storeSize;
+			int storeSize = Star.createStar().size();
+			splitSize = (int) ((file.length() + storeSize - 1) / storeSize / goalNumSplits);
+			if (splitSize > blockSize / storeSize)
+				splitSize = blockSize / storeSize;
 			
 			FileInputStream in = new FileInputStream(args[0]);
-			byte[] bytes = new byte[Star.storeSize];
+			byte[] bytes = new byte[storeSize];
 			boolean end = false;
 			while (!end) {
 				FileOutputStream out = new FileOutputStream(args[1] + "-" + num);
