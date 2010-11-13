@@ -13,6 +13,11 @@ public class BlockIDWritable implements WritableComparable<BlockIDWritable> {
 	public BlockIDWritable() {
 		
 	}
+	
+	public BlockIDWritable(int zoneNum, int raNum) {
+		this.zoneNum = zoneNum;
+		this.raNum = raNum;
+	}
 
 	static public int ra2Num (double ra) {
 		int raNum = (int) (ra / NeighborSearch.blockWidth);

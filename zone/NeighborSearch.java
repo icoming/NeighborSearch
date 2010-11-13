@@ -21,6 +21,7 @@ public class NeighborSearch {
 	static private double blockRanges[][] = new double[numBlocks][2];
 	static private double zoneRanges[][] = new double[numZones][2];
 	static private double maxAlphas[] = new double[numZones];
+	static private double costheta = Math.cos(Math.toRadians(theta));
 	
 	static public double calAlpha(double theta, double dec) {
 		if (Math.abs(dec) + theta > 89.9)
@@ -242,7 +243,7 @@ public class NeighborSearch {
 		conf.setMapperClass(Map.class);
 		// conf.setCombinerClass(Reduce.class);
 		conf.setReducerClass(Reduce.class);
-		conf.setPartitionerClass(ZonePartitioner.class);
+		conf.setPartitionerClass(BlockPartitioner.class);
 
 		conf.setInputFormat(StarInputFormat.class);
 		conf.setOutputFormat(TextOutputFormat.class);
