@@ -8,6 +8,7 @@ import org.apache.hadoop.io.Writable;
 
 public class PairWritable implements Writable {
 	private boolean isPair;
+	private double dist;
 	private Star[] stars = new Star[2];
 	
 	public PairWritable () {
@@ -15,6 +16,12 @@ public class PairWritable implements Writable {
 	}
 	
 	public PairWritable (Star star1, Star star2) {
+		// dist should be calculated by someone else to reduce the computation
+		// even if it can be calculated here.
+		this(star1, star2, 0);
+	}
+	
+	public PairWritable (Star star1, Star star2, double dist) {
 		int num = 0;
 		
 		if (star1 != null) {
@@ -27,6 +34,11 @@ public class PairWritable implements Writable {
 			num++;
 		}
 		isPair = (num == 2);
+		this.dist = dist;
+	}
+	
+	public double getDist() {
+		return dist;
 	}
 
 	@Override

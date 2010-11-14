@@ -8,6 +8,7 @@ import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapred.*;
 
 import zone.io.StarInputFormat;
+import zone.io.StarOutputFormat;
 
 /* export data from a SQL server
  * bcp "SELECT TOP 100000 * FROM [BestDR7].[dbo].[Zone]" queryout zone100000 -n -Sgw20 -T */
@@ -289,14 +290,14 @@ public class NeighborSearch {
 								if (star1.margin && star2.margin)
 									continue;
 	
+								double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
 								if (star1.ra >= star2.ra - maxAlphas[key.zoneNum]
 										&& star1.ra <= star2.ra + maxAlphas[key.zoneNum]
 										&& star1.dec >= star2.dec - theta
 										&& star1.dec <= star2.dec + theta
-										&& star1.x * star2.x + star1.y * star2.y + star1.z
-												* star2.z > costheta) {
-									output.collect(key, new PairWritable(star1, star2));
-									output.collect(key, new PairWritable(star2, star1));
+										&& dist > costheta) {
+									output.collect(key, new PairWritable(star1, star2, dist));
+									output.collect(key, new PairWritable(star2, star1, dist));
 							//		num += 2;
 									
 								}
@@ -351,7 +352,7 @@ public class NeighborSearch {
 		conf.setPartitionerClass(BlockPartitioner.class);
 
 		conf.setInputFormat(StarInputFormat.class);
-		conf.setOutputFormat(TextOutputFormat.class);
+		conf.setOutputFormat(StarOutputFormat.class);
 
 		FileInputFormat.setInputPaths(conf, new Path(args[0]));
 		FileOutputFormat.setOutputPath(conf, new Path(args[1]));
