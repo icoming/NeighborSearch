@@ -20,6 +20,9 @@ public class BlockPartitioner implements Partitioner<BlockIDWritable, PairWritab
 
 	@Override
 	public int getPartition(BlockIDWritable key, PairWritable value, int numReduceTasks) {
+		if (numReduces == 1)
+			return 0;
+
 		int partition = 0;
 		for (; partition < numReduces; partition++) {
 			if (key.compareTo(parts[partition]) >= 0 && key.compareTo(parts[partition + 1]) < 0)
@@ -33,9 +36,13 @@ public class BlockPartitioner implements Partitioner<BlockIDWritable, PairWritab
 
 	@Override
 	public void configure(JobConf job) {
+		/* there is no load balancing problem if there are only one reducer. */
+		numReduces = job.getNumReduceTasks();
+		if (numReduces == 1)
+			return;
+
 		Path file = new Path("/user/zhengda/block-sample/part-00000");
 		FileSystem fs;
-		numReduces = job.getNumReduceTasks();
 		parts = new BlockIDWritable[numReduces + 1];
 		ArrayList<BlockIDWritable> zones = new ArrayList<BlockIDWritable>();
 		ArrayList<Long> sizes = new ArrayList<Long>();
