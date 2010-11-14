@@ -27,7 +27,8 @@ public class Dist {
 				int i;
 				for (i = 0; i < ids.length; i++) {
 					if (stars[num].objID == ids[i]) {
-						System.out.print("find it: ");
+						System.out.print("find it @"
+								+ new zone.BlockIDWritable(stars[num].ra, stars[num].dec) + ": ");
 						stars[num].print();
 						num++;
 						break;
@@ -37,6 +38,8 @@ public class Dist {
 				if (num == 2)
 					break;
 			}
+			System.out.println("theta: " + NeighborSearch.theta);
+			System.out.println("theta dist: " + Math.abs(stars[0].dec - stars[1].dec));
 			double dist = stars[0].x * stars[1].x + stars[0].y * stars[1].y + stars[0].z * stars[1].z;
 			System.out.println("dist: " + dist);
 			System.out.println("needs " + cos);
