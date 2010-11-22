@@ -16,7 +16,7 @@ import zone.io.StarOutputFormat;
 public class NeighborSearch {
 	static public final int numZones = 180;
 	static public final int numBlocks = 360;
-	static public double theta = 1.0/6.0;
+	static public double theta = 1.0/60.0;
 	static public double blockWidth = 360.0 / numBlocks;
 	static public double zoneHeight = 180.0 / numZones;
 	static private double blockRanges[][] = new double[numBlocks][2];
