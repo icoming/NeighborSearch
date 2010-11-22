@@ -241,7 +241,6 @@ public class NeighborSearch {
 			/* add 10 more in each dimension to make sure there is no overflow. */
 			Vector<Star> [][] arrstarV=new Vector[((int) (zoneHeight
 						/ bheight)) + 10][((int) (blockWidth / bwidth)) + 10]; //create bucket vector[Y][X]
-			System.out.println("bwidth=" + bwidth + " , bheight="+ bheight);
 			
 			int num = 0;
 			while (values.hasNext()) {
@@ -253,7 +252,6 @@ public class NeighborSearch {
 				int x=(int)posx+1; //shit by 1 in case star comes from other block
 				double posy= (s.dec-zoneRanges[key.zoneNum][0])/bheight;
 				int y=(int)posy+1;
-               //              System.out.println("x=" + x + " , y="+ y);
 				
 				//set bucket size as max
 				if(buketsizeX<x)
@@ -264,14 +262,8 @@ public class NeighborSearch {
 				if(arrstarV[y][x]==null)
 					arrstarV[y][x]=new Vector<Star>();
 				//put star into bucket
-				arrstarV[y][x].add(s);  
-				
-				
-                //      starV.add(s);
-//                             System.out.println(s);
+				arrstarV[y][x].add(s);
 			}
-			System.out.println("block " + key + ", size: " + num);
-			System.out.println(key + ": " + buketsizeX + " , "+ buketsizeY);
 			// start reducer
 			int i,j,row, col;
 			//for each bucket
@@ -284,7 +276,6 @@ public class NeighborSearch {
 					// TODO we need to avoid searching objects in the border.
 					if(arrstarV[row][col]!=null)
 					{
-						System.out.println("subblock " + row + ":" + col + ", size: " + arrstarV[row][col].size());
 						//old method to generate output
 						for (i = 0; i < arrstarV[row][col].size(); i++) {
 							for (j = i + 1; j < arrstarV[row][col].size(); j++) {
@@ -310,32 +301,27 @@ public class NeighborSearch {
 					
 					}//end if
 					else {
-						System.out.println("subblock " + row + ":" + col + " is empty");
 						continue;
 					}
 					//4 more neighbors
 					//right upper arrstarV[row-1][col+1] vs arrstarV[row][col]
 					if(row!=0 && arrstarV[row-1][col+1]!=null) 
 					{
-						System.out.println("subblock " + (row - 1) + ":" + (col + 1) + ", size: " + arrstarV[row - 1][col + 1].size());
 						search(arrstarV[row][col], arrstarV[row-1][col+1], key, output);
 					}
 					//right arrstarV[row][col+1] vs arrstarV[row][col]
 					if(arrstarV[row][col+1]!=null)
 					{
-						System.out.println("subblock " + row + ":" + (col + 1) + ", size: " + arrstarV[row][col + 1].size());
 						search(arrstarV[row][col], arrstarV[row][col+1], key, output);
 					}
 					//right lower
 					if(arrstarV[row+1][col+1]!=null)
 					{
-						System.out.println("subblock " + (row + 1) + ":" + (col + 1) + ", size: " + arrstarV[row + 1][col + 1].size());
 						search(arrstarV[row][col], arrstarV[row+1][col+1], key, output);
 					}
 					//lower
 					if(arrstarV[row+1][col]!=null)
 					{
-						System.out.println("subblock " + (row + 1) + ":" + col + ", size: " + arrstarV[row + 1][col].size());
 						search(arrstarV[row][col], arrstarV[row+1][col], key, output);
 					}//end if
 				}//end colum
