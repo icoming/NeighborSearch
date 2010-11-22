@@ -28,6 +28,10 @@ public class BlockIDWritable implements WritableComparable<BlockIDWritable> {
 	}
 	
 	public BlockIDWritable(double ra, double dec) {
+		set(ra, dec);
+	}
+	
+	public void set(double ra, double dec) {
 		zoneNum = (int) ((dec + 90) / NeighborSearch.zoneHeight);
 		if (zoneNum == NeighborSearch.numZones)
 			zoneNum--;

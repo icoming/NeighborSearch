@@ -60,6 +60,12 @@ public class NeighborSearch {
 	public static class Map extends MapReduceBase implements
 			Mapper<LongWritable, Star, BlockIDWritable, PairWritable> {
 		
+		/* it seems it's very costly to create an object in Java.
+		 * reuse these objects in every map invocation. */
+		private BlockIDWritable loc = new BlockIDWritable();
+		private PairWritable p = new PairWritable();
+		BlockIDWritable loc1 = new BlockIDWritable();
+		
 		public Map() {
 			init();
 		}
@@ -68,10 +74,10 @@ public class NeighborSearch {
 				OutputCollector<BlockIDWritable, PairWritable> output,
 				Reporter reporter) throws IOException {
 
-			BlockIDWritable loc = new BlockIDWritable(value.ra, value.dec);
+			loc.set(value.ra, value.dec);
 			int zoneNum = loc.zoneNum;
 			int raNum = loc.raNum;
-			PairWritable p = new PairWritable(value, null);
+			p.set(value, null);
 
 			/*
 			 * When the block size increases (> theta), only part of a block
@@ -122,7 +128,6 @@ public class NeighborSearch {
 				/* copy the object to the bottom neighbor */
 				if (value.dec >= zoneRanges[zoneNum][0]
 				             						&& value.dec <= zoneRanges[zoneNum][0] + theta) {
-					BlockIDWritable loc1 = new BlockIDWritable();
 					/* raNum of objects in zone zoneNum - 1 is always 0,
 					 * we need to recalculate it. */
 					loc1.raNum = BlockIDWritable.ra2Num(value.ra);
@@ -144,7 +149,6 @@ public class NeighborSearch {
 				return;
 			}
 
-			BlockIDWritable loc1 = new BlockIDWritable();
 			boolean wrap = false;
 			loc1.raNum = loc.raNum;
 			/* copy the object to the right neighbor */
@@ -249,7 +253,7 @@ public class NeighborSearch {
 				int x=(int)posx+1; //shit by 1 in case star comes from other block
 				double posy= (s.dec-zoneRanges[key.zoneNum][0])/bheight;
 				int y=(int)posy+1;
-		//		System.out.println("x=" + x + " , y="+ y);
+               //              System.out.println("x=" + x + " , y="+ y);
 				
 				//set bucket size as max
 				if(buketsizeX<x)
@@ -263,8 +267,8 @@ public class NeighborSearch {
 				arrstarV[y][x].add(s);  
 				
 				
-			//	starV.add(s);
-//				System.out.println(s);
+                //      starV.add(s);
+//                             System.out.println(s);
 			}
 			System.out.println("block " + key + ", size: " + num);
 			System.out.println(key + ": " + buketsizeX + " , "+ buketsizeY);

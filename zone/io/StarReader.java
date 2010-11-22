@@ -21,7 +21,7 @@ public class StarReader implements RecordReader<LongWritable, Star> {
 	private long pos;
 	private long end;
 	private CompressionCodecFactory compressionCodecs = null;
-	private InputStream in;
+	private DataInputStream in;
 
 	public StarReader(Configuration job, 
 	                          FileSplit split) throws IOException {
@@ -39,7 +39,7 @@ public class StarReader implements RecordReader<LongWritable, Star> {
 		FileSystem fs = file.getFileSystem(job);
 		FSDataInputStream fileIn = fs.open(split.getPath());
 		if (codec != null) {
-			in = codec.createInputStream(fileIn);
+			in = new DataInputStream (codec.createInputStream(fileIn));
 			end = Long.MAX_VALUE;
 		} else {
 			if (start != 0) {
@@ -81,8 +81,8 @@ public class StarReader implements RecordReader<LongWritable, Star> {
 			return false;
 		}
 		
-		value.set(new DataInputStream(in));
-		pos += Star.createStar().size();
+		value.set(in);
+		pos += value.size();
 		return true;
 	}
 

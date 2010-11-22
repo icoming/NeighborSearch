@@ -22,6 +22,14 @@ public class PairWritable implements Writable {
 	}
 	
 	public PairWritable (Star star1, Star star2, double dist) {
+		set(star1, star2, dist);
+	}
+	
+	public void set(Star star1, Star star2) {
+		set(star1, star2, 0);
+	}
+	
+	public void set(Star star1, Star star2, double dist) {
 		int num = 0;
 		
 		if (star1 != null) {
