@@ -79,15 +79,35 @@ public class StarInputFormat extends FileInputFormat<LongWritable, Star> {
 				while (((double) bytesRemaining) / splitSize > SPLIT_SLOP) {
 					String[] splitHosts = getSplitHosts(blkLocations, length
 							- bytesRemaining, splitSize, clusterMap);
-					splits.add(new FileSplit(path, length - bytesRemaining,
-							splitSize, splitHosts));
+					
+					FileSplit split = new FileSplit(path, length - bytesRemaining,
+							splitSize, splitHosts);
+
+					System.out.print("file " + path.getName() + "("
+							+ (length - bytesRemaining) + "+" + splitSize
+							+ ")" + " exists in " + split.getLocations().length + " nodes: ");
+					for (int i = 0; i < split.getLocations().length; i++) {
+						System.out.print(split.getLocations()[i]);
+					}
+					System.out.println();
+					
+					splits.add(split);
 					bytesRemaining -= splitSize;
 				}
 
 				if (bytesRemaining != 0) {
-					splits.add(new FileSplit(path, length - bytesRemaining,
+					FileSplit split = new FileSplit(path, length - bytesRemaining,
 							bytesRemaining,
-							blkLocations[blkLocations.length - 1].getHosts()));
+							blkLocations[blkLocations.length - 1].getHosts());
+					System.out.print("file " + path.getName() + "("
+							+ (length - bytesRemaining) + "+" + bytesRemaining
+							+ ")" + " exists in " + split.getLocations().length + " nodes: ");
+					for (int i = 0; i < split.getLocations().length; i++) {
+						System.out.print(split.getLocations()[i]);
+					}
+					System.out.println();
+
+					splits.add(split);
 				}
 			} else if (length != 0) {
 				String[] splitHosts = getSplitHosts(blkLocations, 0, length,

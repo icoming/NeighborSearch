@@ -32,6 +32,12 @@ public class StarReader implements RecordReader<LongWritable, Star> {
 		end = start + split.getLength();
 		System.out.println("start: " + start + ", end: " + end);
 		final Path file = split.getPath();
+		System.out.print("the split is in " + file.getName() + ", located in " + split.getLocations().length + " nodes");
+		for (int i = 0; i < split.getLocations().length; i++) {
+			System.out.print(split.getLocations()[i] + " ");
+		}
+		System.out.println();
+		
 		compressionCodecs = new CompressionCodecFactory(job);
 		final CompressionCodec codec = compressionCodecs.getCodec(file);
 
