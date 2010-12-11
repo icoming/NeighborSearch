@@ -8,6 +8,7 @@ import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapred.*;
 
 import zone.io.StarInputFormat;
+import zone.io.StarOutputFormat;
 
 /* export data from a SQL server
  * bcp "SELECT TOP 100000 * FROM [BestDR7].[dbo].[Zone]" queryout zone100000 -n -Sgw20 -T */
@@ -15,7 +16,7 @@ import zone.io.StarInputFormat;
 public class NeighborSearch {
 	static public final int numZones = 180;
 	static public final int numBlocks = 360;
-	static public double theta = 1.0/6.0;
+	static public double theta = 1.0/60.0;
 	static public double blockWidth = 360.0 / numBlocks;
 	static public double zoneHeight = 180.0 / numZones;
 	static private double blockRanges[][] = new double[numBlocks][2];
@@ -59,6 +60,12 @@ public class NeighborSearch {
 	public static class Map extends MapReduceBase implements
 			Mapper<LongWritable, Star, BlockIDWritable, PairWritable> {
 		
+		/* it seems it's very costly to create an object in Java.
+		 * reuse these objects in every map invocation. */
+		private BlockIDWritable loc = new BlockIDWritable();
+		private PairWritable p = new PairWritable();
+		BlockIDWritable loc1 = new BlockIDWritable();
+		
 		public Map() {
 			init();
 		}
@@ -67,10 +74,10 @@ public class NeighborSearch {
 				OutputCollector<BlockIDWritable, PairWritable> output,
 				Reporter reporter) throws IOException {
 
-			BlockIDWritable loc = new BlockIDWritable(value.ra, value.dec);
+			loc.set(value.ra, value.dec);
 			int zoneNum = loc.zoneNum;
 			int raNum = loc.raNum;
-			PairWritable p = new PairWritable(value, null);
+			p.set(value, null);
 
 			/*
 			 * When the block size increases (> theta), only part of a block
@@ -121,7 +128,6 @@ public class NeighborSearch {
 				/* copy the object to the bottom neighbor */
 				if (value.dec >= zoneRanges[zoneNum][0]
 				             						&& value.dec <= zoneRanges[zoneNum][0] + theta) {
-					BlockIDWritable loc1 = new BlockIDWritable();
 					/* raNum of objects in zone zoneNum - 1 is always 0,
 					 * we need to recalculate it. */
 					loc1.raNum = BlockIDWritable.ra2Num(value.ra);
@@ -143,7 +149,6 @@ public class NeighborSearch {
 				return;
 			}
 
-			BlockIDWritable loc1 = new BlockIDWritable();
 			boolean wrap = false;
 			loc1.raNum = loc.raNum;
 			/* copy the object to the right neighbor */
@@ -195,41 +200,130 @@ public class NeighborSearch {
 	public static class Reduce extends MapReduceBase
 			implements
 			Reducer<BlockIDWritable, PairWritable, BlockIDWritable, PairWritable> {
+		PairWritable p = new PairWritable();
 		
 		public Reduce() {
 			init();
 		}
 		
-		public void reduce(BlockIDWritable key, Iterator<PairWritable> values,
-				OutputCollector<BlockIDWritable, PairWritable> output,
-				Reporter reporter) throws IOException {
-			Vector<Star> starV = new Vector<Star>();
-			while (values.hasNext()) {
-				Star s = values.next().get(0);
-				starV.add(s);
-			}
-			System.out.println(key + ": " + starV.size() + " stars");
-			int num = 0;
-			for (int i = 0; i < starV.size(); i++) {
-				for (int j = i + 1; j < starV.size(); j++) {
-					Star star1 = starV.get(i);
-					Star star2 = starV.get(j);
+		void search(Vector<Star> v1, Vector<Star> v2, BlockIDWritable key, 
+				OutputCollector<BlockIDWritable, PairWritable> output) throws IOException {
+			for (int i = 0; i < v1.size(); i++) {
+				for (int j = 0; j < v2.size(); j++) {
+					Star star1 = v1.get(i);
+					Star star2 = v2.get(j);
+					//what is this margin about
 					if (star1.margin && star2.margin)
 						continue;
 
-					if (star1.ra >= star2.ra - maxAlphas[key.zoneNum]
-							&& star1.ra <= star2.ra + maxAlphas[key.zoneNum]
-							&& star1.dec >= star2.dec - theta
-							&& star1.dec <= star2.dec + theta
-							&& star1.x * star2.x + star1.y * star2.y + star1.z
-									* star2.z > Math.cos(Math.toRadians(theta))) {
-						output.collect(key, new PairWritable(star1, star2));
-						output.collect(key, new PairWritable(star2, star1));
-						num += 2;
+					double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
+					if (dist > costheta) {
+						p.set (star1, star2, dist);
+						output.collect(key, p);
+						p.set (star2, star1, dist);
+						output.collect(key, p);
+				//		num += 2;
+						
 					}
 				}
+			}//end for i,j
+		}
+		
+		public void reduce(BlockIDWritable key, Iterator<PairWritable> values,
+				OutputCollector<BlockIDWritable, PairWritable> output,
+				Reporter reporter) throws IOException {
+			//Vector<Star> starV = new Vector<Star>();
+			int buketsizeX=0;
+			int buketsizeY=0;
+			double bwidth=maxAlphas[key.zoneNum]; //ra ,x
+			double bheight=theta; //dec ,y
+			/* add 10 more in each dimension to make sure there is no overflow. */
+			Vector<Star> [][] arrstarV=new Vector[((int) (zoneHeight
+						/ bheight)) + 10][((int) (blockWidth / bwidth)) + 10]; //create bucket vector[Y][X]
+			
+			int num = 0;
+			while (values.hasNext()) {
+				num++;
+				Star s = values.next().get(0);
+				
+				//participant
+				double posx= (s.ra-blockRanges[key.raNum][0])/bwidth;
+				int x=(int)posx+1; //shit by 1 in case star comes from other block
+				double posy= (s.dec-zoneRanges[key.zoneNum][0])/bheight;
+				int y=(int)posy+1;
+				
+				//set bucket size as max
+				if(buketsizeX<x)
+					buketsizeX=x;
+				if(buketsizeY<y)
+					buketsizeY=y;
+				//create according bucket
+				if(arrstarV[y][x]==null)
+					// TODO avaoid creating vectors here.
+					arrstarV[y][x]=new Vector<Star>();
+				//put star into bucket
+				arrstarV[y][x].add(s);
 			}
-//			System.out.println("num: " + num);
+			// start reducer
+			int i,j,row, col;
+			//for each bucket
+			for(row=0;row<=buketsizeY;row++)
+			{
+				for(col=0;col<=buketsizeX;col++)
+				{
+			//		starV.clear();
+					//construct a new vector to do compare
+					// TODO we need to avoid searching objects in the border.
+					if(arrstarV[row][col]!=null)
+					{
+						//old method to generate output
+						for (i = 0; i < arrstarV[row][col].size(); i++) {
+							for (j = i + 1; j < arrstarV[row][col].size(); j++) {
+								Star star1 = arrstarV[row][col].get(i);
+								Star star2 = arrstarV[row][col].get(j);
+								//what is this margin about
+								if (star1.margin && star2.margin)
+									continue;
+	
+								double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
+								if (dist > costheta) {
+									p.set(star1, star2, dist);
+									output.collect(key, p);
+									p.set(star2, star1, dist);
+									output.collect(key, p);
+							//		num += 2;
+									
+								}
+							}
+						}//end for i,j
+					
+					}//end if
+					else {
+						continue;
+					}
+					//4 more neighbors
+					//right upper arrstarV[row-1][col+1] vs arrstarV[row][col]
+					if(row!=0 && arrstarV[row-1][col+1]!=null) 
+					{
+						search(arrstarV[row][col], arrstarV[row-1][col+1], key, output);
+					}
+					//right arrstarV[row][col+1] vs arrstarV[row][col]
+					if(arrstarV[row][col+1]!=null)
+					{
+						search(arrstarV[row][col], arrstarV[row][col+1], key, output);
+					}
+					//right lower
+					if(arrstarV[row+1][col+1]!=null)
+					{
+						search(arrstarV[row][col], arrstarV[row+1][col+1], key, output);
+					}
+					//lower
+					if(arrstarV[row+1][col]!=null)
+					{
+						search(arrstarV[row][col], arrstarV[row+1][col], key, output);
+					}//end if
+				}//end colum
+			}//end row
 		}
 	}
 
@@ -243,10 +337,12 @@ public class NeighborSearch {
 		conf.setMapperClass(Map.class);
 		// conf.setCombinerClass(Reduce.class);
 		conf.setReducerClass(Reduce.class);
-		conf.setPartitionerClass(BlockPartitioner.class);
+//		conf.setPartitionerClass(BlockPartitioner.class);
+
+//		conf.setFloat("mapred.reduce.slowstart.completed.maps", (float) 1.0); 
 
 		conf.setInputFormat(StarInputFormat.class);
-		conf.setOutputFormat(TextOutputFormat.class);
+		conf.setOutputFormat(StarOutputFormat.class);
 
 		FileInputFormat.setInputPaths(conf, new Path(args[0]));
 		FileOutputFormat.setOutputPath(conf, new Path(args[1]));

@@ -24,6 +24,9 @@ import zone.io.StarInputFormat;
 public class BlockSize {
 	public static class Map extends MapReduceBase implements
 			Mapper<LongWritable, Star, BlockIDWritable, LongWritable> {
+		private LongWritable one = new LongWritable(1);
+		private BlockIDWritable loc = new BlockIDWritable();
+		
 		public Map() {
 			NeighborSearch.init();
 		}
@@ -31,13 +34,15 @@ public class BlockSize {
 		public void map(LongWritable key, Star value,
 				OutputCollector<BlockIDWritable, LongWritable> output,
 				Reporter reporter) throws IOException {
-			BlockIDWritable loc = new BlockIDWritable(value.ra, value.dec);
-			output.collect(loc, new LongWritable(1));
+			loc.set(value.ra, value.dec);
+			output.collect(loc, one);
 		}
 	}
 
 	public static class Reduce extends MapReduceBase implements
 			Reducer<BlockIDWritable, LongWritable, BlockIDWritable, LongWritable> {
+		private LongWritable res = new LongWritable();
+		
 		public void reduce(BlockIDWritable key, Iterator<LongWritable> values,
 				OutputCollector<BlockIDWritable, LongWritable> output,
 				Reporter reporter) throws IOException {
@@ -48,7 +53,8 @@ public class BlockSize {
 				LongWritable n = values.next();
 				num += n.get();
 			}
-			output.collect(key, new LongWritable(num));
+			res.set(num);
+			output.collect(key, res);
 			System.out.println("block " + key + ", size: " + num);
 		}
 	}
@@ -65,6 +71,7 @@ public class BlockSize {
 		conf.setReducerClass(Reduce.class);
 
 		conf.setNumReduceTasks(1);
+		conf.setFloat("mapred.reduce.slowstart.completed.maps", (float) 0.99); 
 
 		conf.setInputFormat(StarInputFormat.class);
 		conf.setOutputFormat(BlockOutputFormat.class);

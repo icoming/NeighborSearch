@@ -27,6 +27,10 @@ import zone.io.StarInputFormat;
 public class ZoneSize {
 	public static class Map extends MapReduceBase implements
 			Mapper<LongWritable, Star, LongWritable, LongWritable> {
+		private LongWritable num = new LongWritable();
+		private LongWritable one = new LongWritable(1);
+		private BlockIDWritable loc = new BlockIDWritable();
+		
 		public Map() {
 			NeighborSearch.init();
 		}
@@ -34,13 +38,16 @@ public class ZoneSize {
 		public void map(LongWritable key, Star value,
 				OutputCollector<LongWritable, LongWritable> output, Reporter reporter)
 				throws IOException {
-			BlockIDWritable loc = new BlockIDWritable(value.ra, value.dec);
-			output.collect(new LongWritable(loc.zoneNum), new LongWritable(1));
+			loc.set(value.ra, value.dec);
+			num.set(loc.zoneNum);
+			output.collect(num, one);
 		}
 	}
 
 	public static class Combine extends MapReduceBase implements
 			Reducer<LongWritable, LongWritable, LongWritable, LongWritable> {
+		private LongWritable res = new LongWritable();
+		
 		public void reduce(LongWritable key, Iterator<LongWritable> values,
 				OutputCollector<LongWritable, LongWritable> output, Reporter reporter)
 				throws IOException {
@@ -49,7 +56,8 @@ public class ZoneSize {
 				LongWritable n = values.next();
 				num += n.get();
 			}
-			output.collect(key, new LongWritable(num));
+			res.set(num);
+			output.collect(key, res);
 		}
 	}
 
