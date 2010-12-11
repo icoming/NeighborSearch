@@ -200,6 +200,7 @@ public class NeighborSearch {
 	public static class Reduce extends MapReduceBase
 			implements
 			Reducer<BlockIDWritable, PairWritable, BlockIDWritable, PairWritable> {
+		PairWritable p = new PairWritable();
 		
 		public Reduce() {
 			init();
@@ -215,14 +216,12 @@ public class NeighborSearch {
 					if (star1.margin && star2.margin)
 						continue;
 
-					if (star1.ra >= star2.ra - maxAlphas[key.zoneNum]
-							&& star1.ra <= star2.ra + maxAlphas[key.zoneNum]
-							&& star1.dec >= star2.dec - theta
-							&& star1.dec <= star2.dec + theta
-							&& star1.x * star2.x + star1.y * star2.y + star1.z
-									* star2.z > Math.cos(Math.toRadians(theta))) {
-						output.collect(key, new PairWritable(star1, star2));
-						output.collect(key, new PairWritable(star2, star1));
+					double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
+					if (dist > costheta) {
+						p.set (star1, star2, dist);
+						output.collect(key, p);
+						p.set (star2, star1, dist);
+						output.collect(key, p);
 				//		num += 2;
 						
 					}
@@ -260,6 +259,7 @@ public class NeighborSearch {
 					buketsizeY=y;
 				//create according bucket
 				if(arrstarV[y][x]==null)
+					// TODO avaoid creating vectors here.
 					arrstarV[y][x]=new Vector<Star>();
 				//put star into bucket
 				arrstarV[y][x].add(s);
@@ -286,13 +286,11 @@ public class NeighborSearch {
 									continue;
 	
 								double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
-								if (star1.ra >= star2.ra - maxAlphas[key.zoneNum]
-										&& star1.ra <= star2.ra + maxAlphas[key.zoneNum]
-										&& star1.dec >= star2.dec - theta
-										&& star1.dec <= star2.dec + theta
-										&& dist > costheta) {
-									output.collect(key, new PairWritable(star1, star2, dist));
-									output.collect(key, new PairWritable(star2, star1, dist));
+								if (dist > costheta) {
+									p.set(star1, star2, dist);
+									output.collect(key, p);
+									p.set(star2, star1, dist);
+									output.collect(key, p);
 							//		num += 2;
 									
 								}
@@ -339,7 +337,9 @@ public class NeighborSearch {
 		conf.setMapperClass(Map.class);
 		// conf.setCombinerClass(Reduce.class);
 		conf.setReducerClass(Reduce.class);
-		conf.setPartitionerClass(BlockPartitioner.class);
+//		conf.setPartitionerClass(BlockPartitioner.class);
+
+//		conf.setFloat("mapred.reduce.slowstart.completed.maps", (float) 1.0); 
 
 		conf.setInputFormat(StarInputFormat.class);
 		conf.setOutputFormat(StarOutputFormat.class);
