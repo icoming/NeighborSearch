@@ -91,17 +91,6 @@ public class NeighborSearch {
 		//Set the output path
 		StarOutputFormat.setOutputPath(job, new Path(args[1]));
 		
-		int blocksize = conf.getInt("dfs.block.size", 64 * MEGABYTES);
-		/* Set the minimum and maximum split sizes
-	       This parameter helps to specify the number of map tasks.
-	       For each input split, there will be a separate map task.
-	       In this example each split is of size 32 MB
-	     */
-		int starSize = Star.createStar().size();
-		blocksize = (blocksize / starSize) * starSize; 
-		StarInputFormat.setMinInputSplitSize(job, blocksize);
-		StarInputFormat.setMaxInputSplitSize(job, blocksize);				
-		
 		// Set the jar file to run
 		job.setJarByClass(NeighborSearch.class);
 		
