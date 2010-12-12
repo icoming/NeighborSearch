@@ -71,7 +71,7 @@ public class NeighborSearch {
 		job.setJobName("WordCount");
 		
 		job.setMapOutputKeyClass(BlockIDWritable.class);
-		job.setMapOutputValueClass(StarZone.class);
+		job.setMapOutputValueClass(PairWritable.class);
 		
 		// the keys are words (strings)
 		job.setOutputKeyClass(BlockIDWritable.class);
