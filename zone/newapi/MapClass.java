@@ -14,17 +14,17 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> 
 	private BlockIDWritable loc = new BlockIDWritable();
 	BlockIDWritable loc1 = new BlockIDWritable();
 	
-	static {
+	public MapClass() {
 		NeighborSearch.init();
 	}
 
 	public void map(LongWritable key, Star value, Context context)
 			throws IOException, InterruptedException {
+		loc.set(value.ra, value.dec);
 
 		int zoneNum = loc.zoneNum;
 		int raNum = loc.raNum;
-		loc.set(value.ra, value.dec);
-
+		
 		/*
 		 * When the block size increases (> theta), only part of a block
 		 * needs to be copied to its neighbor.
