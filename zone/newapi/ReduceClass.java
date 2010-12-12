@@ -13,7 +13,7 @@ import zone.Star;
 public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable, PairWritable> { 
 	PairWritable p = new PairWritable();
 	
-	static {
+	public ReduceClass() {
 		NeighborSearch.init();
 	}
 	
@@ -39,8 +39,9 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 			}
 		}//end for i,j
 	}
-	
-	public void reduce(BlockIDWritable key, Iterator<Star> values,
+
+	@Override
+	public void reduce(BlockIDWritable key, Iterable<Star> values,
 			Context context) throws IOException, InterruptedException {
 		//Vector<Star> starV = new Vector<Star>();
 		int buketsizeX=0;
@@ -52,9 +53,10 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 					/ bheight)) + 10][((int) (NeighborSearch.blockWidth / bwidth)) + 10]; //create bucket vector[Y][X]
 		
 		int num = 0;
-		while (values.hasNext()) {
+		Iterator<Star> it = values.iterator();
+		while (it.hasNext()) {
 			num++;
-			Star s = values.next();
+			Star s = it.next();
 			
 			//participant
 			double posx= (s.ra-NeighborSearch.blockRanges[key.raNum][0])/bwidth;
@@ -69,7 +71,7 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 				buketsizeY=y;
 			//create according bucket
 			if(arrstarV[y][x]==null)
-				// TODO avaoid creating vectors here.
+				// TODO avoid creating vectors here.
 				arrstarV[y][x]=new Vector<Star>();
 			//put star into bucket
 			arrstarV[y][x].add(s);
