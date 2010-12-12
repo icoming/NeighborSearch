@@ -8,7 +8,7 @@ import org.apache.hadoop.mapreduce.Job;
 
 import zone.BlockIDWritable;
 import zone.PairWritable;
-import zone.Star;
+import zone.StarZone;
 import zone.newapi.io.StarInputFormat;
 import zone.newapi.io.StarOutputFormat;
 
@@ -58,7 +58,6 @@ public class NeighborSearch {
 
 	public static int main(String[] args) throws Exception
 	{
-		final int MEGABYTES = 1024*1024;
 		// Get the default configuration object
 		Configuration conf = new Configuration();
 		
@@ -72,7 +71,7 @@ public class NeighborSearch {
 		job.setJobName("WordCount");
 		
 		job.setMapOutputKeyClass(BlockIDWritable.class);
-		job.setMapOutputValueClass(Star.class);
+		job.setMapOutputValueClass(StarZone.class);
 		
 		// the keys are words (strings)
 		job.setOutputKeyClass(BlockIDWritable.class);
