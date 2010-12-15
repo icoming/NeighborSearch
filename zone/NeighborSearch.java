@@ -201,9 +201,22 @@ public class NeighborSearch {
 			implements
 			Reducer<BlockIDWritable, PairWritable, BlockIDWritable, PairWritable> {
 		PairWritable p = new PairWritable();
+		Vector<Star> [][] arrstarV;
 		
 		public Reduce() {
 			init();
+
+			double bwidth=maxAlphas[0]; // use the smallest maxAlpha
+			double bheight=theta; //dec ,y
+			int x = ((int) (zoneHeight / bheight)) + 10;
+			int y = ((int) (blockWidth / bwidth)) + 10;
+			/* add 10 more in each dimension to make sure there is no overflow. */
+			arrstarV=new Vector[x][y]; //create bucket vector[Y][X]
+			
+			for (int i = 0; i < x; i++) {
+				for (int j = 0; j < y; j++)
+					arrstarV[i][j] = new Vector<Star>();
+			}
 		}
 		
 		void search(Vector<Star> v1, Vector<Star> v2, BlockIDWritable key, 
@@ -237,9 +250,6 @@ public class NeighborSearch {
 			int buketsizeY=0;
 			double bwidth=maxAlphas[key.zoneNum]; //ra ,x
 			double bheight=theta; //dec ,y
-			/* add 10 more in each dimension to make sure there is no overflow. */
-			Vector<Star> [][] arrstarV=new Vector[((int) (zoneHeight
-						/ bheight)) + 10][((int) (blockWidth / bwidth)) + 10]; //create bucket vector[Y][X]
 			
 			int num = 0;
 			while (values.hasNext()) {
@@ -257,13 +267,10 @@ public class NeighborSearch {
 					buketsizeX=x;
 				if(buketsizeY<y)
 					buketsizeY=y;
-				//create according bucket
-				if(arrstarV[y][x]==null)
-					// TODO avaoid creating vectors here.
-					arrstarV[y][x]=new Vector<Star>();
 				//put star into bucket
 				arrstarV[y][x].add(s);
 			}
+			
 			// start reducer
 			int i,j,row, col;
 			//for each bucket
@@ -274,7 +281,7 @@ public class NeighborSearch {
 			//		starV.clear();
 					//construct a new vector to do compare
 					// TODO we need to avoid searching objects in the border.
-					if(arrstarV[row][col]!=null)
+					if(arrstarV[row][col].size() > 0)
 					{
 						//old method to generate output
 						for (i = 0; i < arrstarV[row][col].size(); i++) {
@@ -303,31 +310,32 @@ public class NeighborSearch {
 					}
 					//4 more neighbors
 					//right upper arrstarV[row-1][col+1] vs arrstarV[row][col]
-					if(row!=0 && arrstarV[row-1][col+1]!=null) 
+					if(row!=0) 
 					{
 						search(arrstarV[row][col], arrstarV[row-1][col+1], key, output);
 					}
 					//right arrstarV[row][col+1] vs arrstarV[row][col]
-					if(arrstarV[row][col+1]!=null)
-					{
-						search(arrstarV[row][col], arrstarV[row][col+1], key, output);
-					}
+					search(arrstarV[row][col], arrstarV[row][col+1], key, output);
 					//right lower
-					if(arrstarV[row+1][col+1]!=null)
-					{
-						search(arrstarV[row][col], arrstarV[row+1][col+1], key, output);
-					}
+					search(arrstarV[row][col], arrstarV[row+1][col+1], key, output);
 					//lower
-					if(arrstarV[row+1][col]!=null)
-					{
-						search(arrstarV[row][col], arrstarV[row+1][col], key, output);
-					}//end if
+					search(arrstarV[row][col], arrstarV[row+1][col], key, output);
 				}//end colum
 			}//end row
+			
+			/* clean up all vectors */
+			for(row=0;row<=buketsizeY;row++)
+			{
+				for(col=0;col<=buketsizeX;col++)
+				{
+					arrstarV[row][col].clear();
+				}
+			}
 		}
 	}
 
 	public static void main(String[] args) throws Exception {
+		System.out.println("version 1");
 		JobConf conf = new JobConf(NeighborSearch.class);
 		conf.setJobName("star searching");
 
