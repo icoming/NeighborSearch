@@ -97,7 +97,7 @@ public class StarReader extends RecordReader<LongWritable, Star> {
 		if (value == null) {
 			value = Star.createStar();
 		}
-		if (pos >= end || in.available() < value.size()) {
+		if (end - pos < value.size()) {
 			key = null;
 			value = null;
 			return false;
