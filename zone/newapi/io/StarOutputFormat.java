@@ -1,6 +1,7 @@
 package zone.newapi.io;
 
 import java.io.DataOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -59,11 +60,12 @@ public class StarOutputFormat extends FileOutputFormat<BlockIDWritable, PairWrit
 		FileSystem fs = file.getFileSystem(conf);
 		if (!isCompressed) {
 			FSDataOutputStream fileOut = fs.create(file, false);
-			return new BlockRecordWriter(fileOut);
+			return new BlockRecordWriter(new DataOutputStream(
+						new BufferedOutputStream(fileOut, 16 * 1024)));
 		} else {
 			FSDataOutputStream fileOut = fs.create(file, false);
-			return new BlockRecordWriter(new DataOutputStream(codec
-					.createOutputStream(fileOut)));
+			return new BlockRecordWriter(new DataOutputStream(new BufferedOutputStream(codec
+					.createOutputStream(fileOut), 16 * 1024)));
 		}
 	}
 
