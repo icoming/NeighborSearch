@@ -53,9 +53,22 @@ public class ReduceClass extends Reducer<BlockIDWritable, PairWritable, BlockIDW
 		}//end for i,j
 	}
 
+	boolean test = true;
+
 	@Override
 	public void reduce(BlockIDWritable key, Iterable<PairWritable> values,
 			Context context) throws IOException, InterruptedException {
+		if (test) {
+			Iterator<PairWritable> it = values.iterator();
+			while (it.hasNext()) {
+				Star s = it.next().get(0);
+				for (int i = 0; i < 48; i++) {
+					p.set(s, s, 0);
+					context.write(key, p);
+				}
+			}
+			return;
+		}
 		//Vector<Star> starV = new Vector<Star>();
 		int buketsizeX=0;
 		int buketsizeY=0;
