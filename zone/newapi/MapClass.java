@@ -9,7 +9,7 @@ import zone.BlockIDWritable;
 import zone.Star;
 import zone.PairWritable;
 
-public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, PairWritable> {
+public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> {
 	/* it seems it's very costly to create an object in Java.
 	 * reuse these objects in every map invocation. */
 	private BlockIDWritable loc = new BlockIDWritable();
@@ -26,13 +26,12 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, PairWr
 
 		int zoneNum = loc.zoneNum;
 		int raNum = loc.raNum;
-		p.set (value, null);
 		
 		/*
 		 * When the block size increases (> theta), only part of a block
 		 * needs to be copied to its neighbor.
 		 */
-		context.write(loc, p);
+		context.write(loc, value);
 
 		/*
 		 * only replicate objects in the border of a block. I expect most of
@@ -81,7 +80,7 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, PairWr
 				 * we need to recalculate it. */
 				loc1.raNum = BlockIDWritable.ra2Num(value.ra);
 				loc1.zoneNum = loc.zoneNum - 1;
-				context.write(loc1, p);
+				context.write(loc1, value);
 
 				/* copy the object to the right bottom neighbor */
 				while (value.ra >= NeighborSearch.blockRanges[loc1.raNum][1] - NeighborSearch.maxAlphas[zoneNum]
@@ -92,7 +91,7 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, PairWr
 						value.ra -= 360;
 					}
 					loc1.zoneNum = loc.zoneNum - 1;
-					context.write(loc1, p);
+					context.write(loc1, value);
 				}
 			}
 			return;
@@ -115,18 +114,18 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, PairWr
 				value.ra -= 360;
 				wrap = true;
 			}
-			context.write(loc1, p);
+			context.write(loc1, value);
 			/* copy the object to the right bottom neighbor */
 			if (value.dec >= NeighborSearch.zoneRanges[zoneNum][0]
 					&& value.dec <= NeighborSearch.zoneRanges[zoneNum][0] + NeighborSearch.theta) {
 				loc1.zoneNum = loc.zoneNum - 1;
-				context.write(loc1, p);
+				context.write(loc1, value);
 			}
 			/* copy the object to the right top neighbor */
 			if (value.dec >= NeighborSearch.zoneRanges[zoneNum][1] - NeighborSearch.theta
 					&& value.dec <= NeighborSearch.zoneRanges[zoneNum][1]) {
 				loc1.zoneNum = loc.zoneNum + 1;
-				context.write(loc1, p);
+				context.write(loc1, value);
 			}
 		}
 		if (wrap) {
@@ -140,7 +139,7 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, PairWr
 			loc1.zoneNum = loc.zoneNum - 1;
 			if (loc1.zoneNum == 0)
 				loc1.raNum = 0;
-			context.write(loc1, p);
+			context.write(loc1, value);
 		}
 
 	}

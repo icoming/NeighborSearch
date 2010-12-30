@@ -10,7 +10,7 @@ import org.apache.hadoop.io.Writable;
 /* a Star object has 56 bytes.
  * but in an exported file, each object stored in the file has 1 more byte at the end.
  * therefore, each object actually occupies 57 bytes. */
-public abstract class Star implements Writable {
+public abstract class Star implements Writable, Cloneable {
 	public double ra;			/* 8 bytes */
 	public double dec;			/* 8 bytes */
 	public long objID;			/* 8 bytes */
@@ -46,6 +46,15 @@ public abstract class Star implements Writable {
 		out.writeDouble(y);
 		out.writeDouble(z);
 		out.writeBoolean(margin);
+	}
+	
+	public Star clone() {
+		try {
+			return (Star) super.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public abstract void set(DataInputStream in) throws IOException;

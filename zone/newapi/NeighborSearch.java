@@ -65,13 +65,13 @@ public class NeighborSearch {
 		conf.addResource("hdfs-default.xml");
 		conf.addResource("hdfs-site.xml");
 		conf.addResource("mapred-default.xml");
-		conf.addResource("mapred-site.xml");	
+		conf.addResource("mapred-site.xml");
 
 		Job job = new Job(conf);
-		job.setJobName("WordCount");
+		job.setJobName("NeighborSearch");
 		
 		job.setMapOutputKeyClass(BlockIDWritable.class);
-		job.setMapOutputValueClass(PairWritable.class);
+		job.setMapOutputValueClass(StarZone.class);
 		
 		// the keys are words (strings)
 		job.setOutputKeyClass(BlockIDWritable.class);

@@ -10,7 +10,7 @@ import zone.BlockIDWritable;
 import zone.PairWritable;
 import zone.Star;
 
-public class ReduceClass extends Reducer<BlockIDWritable, PairWritable, BlockIDWritable, PairWritable> { 
+public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable, PairWritable> { 
 	PairWritable p = new PairWritable();
 	Vector<Star> [][] arrstarV;
 	
@@ -53,22 +53,9 @@ public class ReduceClass extends Reducer<BlockIDWritable, PairWritable, BlockIDW
 		}//end for i,j
 	}
 
-	boolean test = true;
-
 	@Override
-	public void reduce(BlockIDWritable key, Iterable<PairWritable> values,
+	public void reduce(BlockIDWritable key, Iterable<Star> values,
 			Context context) throws IOException, InterruptedException {
-		if (test) {
-			Iterator<PairWritable> it = values.iterator();
-			while (it.hasNext()) {
-				Star s = it.next().get(0);
-				for (int i = 0; i < 48; i++) {
-					p.set(s, s, 0);
-					context.write(key, p);
-				}
-			}
-			return;
-		}
 		//Vector<Star> starV = new Vector<Star>();
 		int buketsizeX=0;
 		int buketsizeY=0;
@@ -76,10 +63,13 @@ public class ReduceClass extends Reducer<BlockIDWritable, PairWritable, BlockIDW
 		double bheight=NeighborSearch.theta; //dec ,y
 		
 		int num = 0;
-		Iterator<PairWritable> it = values.iterator();
+		Iterator<Star> it = values.iterator();
 		while (it.hasNext()) {
 			num++;
-			Star s = it.next().get(0);
+			Star s = it.next();
+			// the iterator always uses the same star object. 
+			// so I need to make a copy when I get a new star
+			s = s.clone();
 			
 			//participant
 			double posx= (s.ra-NeighborSearch.blockRanges[key.raNum][0])/bwidth;
