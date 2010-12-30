@@ -7,16 +7,14 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 
 import zone.BlockIDWritable;
-import zone.PairWritable;
 import zone.StarZone;
 import zone.newapi.MapClass;
 import zone.newapi.io.StarInputFormat;
-import zone.newapi.io.StarOutputFormat;
 
 public class NeighborStat {
 	public static int main(String[] args) throws Exception
 	{
-		System.out.println("version 17");
+		System.out.println("version 1");
 		// Get the default configuration object
 		Configuration conf = new Configuration();
 		
@@ -28,7 +26,7 @@ public class NeighborStat {
 //		conf.setFloat("mapred.reduce.slowstart.completed.maps", (float) 1.0); 
 
 		Job job = new Job(conf);
-		job.setJobName("NeighborSearch");
+		job.setJobName("NeighborStat");
 		
 		job.setMapOutputKeyClass(BlockIDWritable.class);
 		job.setMapOutputValueClass(StarZone.class);
@@ -44,11 +42,11 @@ public class NeighborStat {
 		//Set the input format class
 		job.setInputFormatClass(StarInputFormat.class);
 		//Set the output format class
-		job.setOutputFormatClass(StarOutputFormat.class);		
+		job.setOutputFormatClass(ArrayOutputFormat.class);		
 		//Set the input path
 		StarInputFormat.setInputPaths(job,args[0]);
 		//Set the output path
-		StarOutputFormat.setOutputPath(job, new Path(args[1]));
+		ArrayOutputFormat.setOutputPath(job, new Path(args[1]));
 		
 		// Set the jar file to run
 		job.setJarByClass(NeighborStat.class);

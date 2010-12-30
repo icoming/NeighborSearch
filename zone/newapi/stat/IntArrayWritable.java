@@ -22,6 +22,10 @@ public class IntArrayWritable implements Writable {
 	public void set(int idx, int value) {
 		array[idx] = value;
 	}
+	
+	public void inc(int idx) {
+		array[idx]++;
+	}
 
 	@Override
 	public void readFields(DataInput in) throws IOException {

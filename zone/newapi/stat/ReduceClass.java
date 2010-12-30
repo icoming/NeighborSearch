@@ -7,7 +7,6 @@ import java.util.Vector;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import zone.BlockIDWritable;
-import zone.PairWritable;
 import zone.Star;
 import zone.newapi.NeighborSearch;
 
@@ -33,7 +32,7 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 	}
 	
 	void search(Vector<Star> v1, Vector<Star> v2, BlockIDWritable key, 
-			Context context) throws IOException, InterruptedException {
+			IntArrayWritable arr) throws IOException, InterruptedException {
 		for (int i = 0; i < v1.size(); i++) {
 			for (int j = 0; j < v2.size(); j++) {
 				Star star1 = v1.get(i);
@@ -42,15 +41,12 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 				if (star1.margin && star2.margin)
 					continue;
 
-				double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
-				if (dist > NeighborSearch.costheta) {
-					p.set (star1, star2, dist);
-					context.write(key, p);
-					p.set (star2, star1, dist);
-					context.write(key, p);
-			//		num += 2;
-					
-				}
+				// it's in arcseconds.
+				double dist = Math.toDegrees(Math.acos(star1.x
+						* star2.x + star1.y * star2.y + star1.z * star2.z)) * 3600;
+				if (dist >= numStat)
+					continue;
+				arr.inc((int) dist + 1);
 			}
 		}//end for i,j
 	}
@@ -113,15 +109,12 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 							if (star1.margin && star2.margin)
 								continue;
 
-							double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
-							if (dist > NeighborSearch.costheta) {
-								p.set(star1, star2, dist);
-								context.write(key, p);
-								p.set(star2, star1, dist);
-								context.write(key, p);
-						//		num += 2;
-								
-							}
+							// it's in arcseconds.
+							double dist = Math.toDegrees(Math.acos(star1.x
+									* star2.x + star1.y * star2.y + star1.z * star2.z)) * 3600;
+							if (dist >= numStat)
+								continue;
+							arr.inc((int) dist + 1);
 						}
 					}//end for i,j
 				
@@ -133,16 +126,17 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 				//right upper arrstarV[row-1][col+1] vs arrstarV[row][col]
 				if(row!=0) 
 				{
-					search(arrstarV[row][col], arrstarV[row-1][col+1], key, context);
+					search(arrstarV[row][col], arrstarV[row-1][col+1], key, arr);
 				}
 				//right arrstarV[row][col+1] vs arrstarV[row][col]
-				search(arrstarV[row][col], arrstarV[row][col+1], key, context);
+				search(arrstarV[row][col], arrstarV[row][col+1], key, arr);
 				//right lower
-				search(arrstarV[row][col], arrstarV[row+1][col+1], key, context);
+				search(arrstarV[row][col], arrstarV[row+1][col+1], key, arr);
 				//lower
-				search(arrstarV[row][col], arrstarV[row+1][col], key, context);
+				search(arrstarV[row][col], arrstarV[row+1][col], key, arr);
 			}//end colum
 		}//end row
+		context.write(key, arr);
 		
 		/* clean up all vectors */
 		for(row=0;row<=buketsizeY;row++)
