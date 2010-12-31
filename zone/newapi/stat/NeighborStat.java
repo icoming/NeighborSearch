@@ -27,7 +27,12 @@ class FinalMapClass extends Mapper<LongWritable, Text, LongWritable, IntArrayWri
 	public void map(LongWritable key, Text value, Context context)
 			throws IOException, InterruptedException {
 		String line = value.toString();
-		String nums[] = line.split(" ");
+		System.out.println(line);
+		int idx = line.indexOf('\t');
+		if (idx == -1)
+			return;
+
+		String nums[] = line.substring(idx + 1).split(" ");
 		IntArrayWritable arr = new IntArrayWritable(nums.length);
 		for (int i = 0; i < nums.length; i++) {
 			arr.set(i, new Integer(nums[i]).intValue());
@@ -45,7 +50,7 @@ class FinalReduceClass extends Reducer<LongWritable, IntArrayWritable, LongWrita
 		while (it.hasNext()) {
 			IntArrayWritable tmp = it.next();
 			if (arr == null)
-				arr = tmp;
+				arr = tmp.clone();
 			else {
 				arr.add(tmp);
 			}
@@ -122,9 +127,9 @@ public class NeighborStat {
 			job.setOutputFormatClass(TextOutputFormat.class);		
 //			TextInputFormat.setMinInputSplitSize(job, size);
 			//Set the input path
-			TextInputFormat.setInputPaths(job,args[0]);
+			TextInputFormat.setInputPaths(job,args[1] + "-1");
 			//Set the output path
-			TextOutputFormat.setOutputPath(job, new Path(args[1] + "-1"));
+			TextOutputFormat.setOutputPath(job, new Path(args[1] + "-2"));
 			
 			// Set the jar file to run
 			job.setJarByClass(NeighborStat.class);

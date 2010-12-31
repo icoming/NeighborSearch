@@ -46,7 +46,8 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 						* star2.x + star1.y * star2.y + star1.z * star2.z)) * 3600;
 				if (dist >= numStat)
 					continue;
-				arr.inc((int) dist + 1);
+				for (int k = (int) dist; k < numStat; k++)
+					arr.inc(k + 1);
 			}
 		}//end for i,j
 	}
@@ -109,12 +110,13 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 							if (star1.margin && star2.margin)
 								continue;
 
+							double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
 							// it's in arcseconds.
-							double dist = Math.toDegrees(Math.acos(star1.x
-									* star2.x + star1.y * star2.y + star1.z * star2.z)) * 3600;
+							dist = Math.toDegrees(Math.acos(dist)) * 3600;
 							if (dist >= numStat)
 								continue;
-							arr.inc((int) dist + 1);
+							for (int k = (int) dist; k < numStat; k++)
+								arr.inc(k + 1);
 						}
 					}//end for i,j
 				

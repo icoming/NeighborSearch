@@ -6,8 +6,11 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Writable;
 
-public class IntArrayWritable implements Writable {
+public class IntArrayWritable implements Writable, Cloneable {
 	int array[];
+
+	public IntArrayWritable() {
+	}
 	
 	public IntArrayWritable(int len) {
 		array = new int[len];
@@ -48,7 +51,25 @@ public class IntArrayWritable implements Writable {
 	public void write(DataOutput out) throws IOException {
 		out.writeInt(array.length);
 		for (int i = 0; i < array.length; i++) {
-			out.write(array[i]);
+			out.writeInt(array[i]);
+		}
+	}
+
+	@Override
+	public String toString() {
+		String ret = "";
+		for (int i = 0; i < array.length; i++) {
+			ret += array[i] + " ";
+		}
+		return ret;
+	}
+
+	public IntArrayWritable clone() {
+		try {
+			return (IntArrayWritable) super.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 
