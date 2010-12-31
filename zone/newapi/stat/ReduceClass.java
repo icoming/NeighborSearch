@@ -10,7 +10,7 @@ import zone.BlockIDWritable;
 import zone.Star;
 import zone.newapi.NeighborSearch;
 
-public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable, IntArrayWritable> { 
+public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable, LongArrayWritable> { 
 	static final int numStat = 60;
 	
 	Vector<Star> [][] arrstarV;
@@ -32,7 +32,7 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 	}
 	
 	void search(Vector<Star> v1, Vector<Star> v2, BlockIDWritable key, 
-			IntArrayWritable arr) throws IOException, InterruptedException {
+			LongArrayWritable arr) throws IOException, InterruptedException {
 		for (int i = 0; i < v1.size(); i++) {
 			for (int j = 0; j < v2.size(); j++) {
 				Star star1 = v1.get(i);
@@ -86,7 +86,7 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 		}
 		
 		// we need an extra entry to store the number of input elements
-		IntArrayWritable arr = new IntArrayWritable(numStat + 1);
+		LongArrayWritable arr = new LongArrayWritable(numStat + 1);
 		arr.set(0, num);
 		
 		// start reducer

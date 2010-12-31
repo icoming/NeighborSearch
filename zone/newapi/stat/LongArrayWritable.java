@@ -6,23 +6,19 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Writable;
 
-public class IntArrayWritable implements Writable, Cloneable {
-	int array[];
+public class LongArrayWritable implements Writable, Cloneable {
+	long array[];
 
-	public IntArrayWritable() {
+	public LongArrayWritable() {
 	}
 	
-	public IntArrayWritable(int len) {
-		array = new int[len];
+	public LongArrayWritable(int len) {
+		array = new long[len];
 		for (int i = 0; i < len; i++)
 			array[i] = 0;
 	}
 	
-	public IntArrayWritable(int array[]) {
-		this.array = array;
-	}
-	
-	public void set(int idx, int value) {
+	public void set(int idx, long value) {
 		array[idx] = value;
 	}
 	
@@ -30,7 +26,7 @@ public class IntArrayWritable implements Writable, Cloneable {
 		array[idx]++;
 	}
 	
-	public void add(IntArrayWritable arr) {
+	public void add(LongArrayWritable arr) {
 		if (array.length != arr.array.length)
 			throw new IllegalArgumentException();
 		for (int i = 0; i < array.length; i++) {
@@ -41,9 +37,9 @@ public class IntArrayWritable implements Writable, Cloneable {
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		int len = in.readInt();
-		array = new int[len];
+		array = new long[len];
 		for (int i = 0; i < len; i++) {
-			array[i] = in.readInt();
+			array[i] = in.readLong();
 		}
 	}
 
@@ -51,7 +47,7 @@ public class IntArrayWritable implements Writable, Cloneable {
 	public void write(DataOutput out) throws IOException {
 		out.writeInt(array.length);
 		for (int i = 0; i < array.length; i++) {
-			out.writeInt(array[i]);
+			out.writeLong(array[i]);
 		}
 	}
 
@@ -64,9 +60,9 @@ public class IntArrayWritable implements Writable, Cloneable {
 		return ret;
 	}
 
-	public IntArrayWritable clone() {
+	public LongArrayWritable clone() {
 		try {
-			return (IntArrayWritable) super.clone();
+			return (LongArrayWritable) super.clone();
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 			return null;

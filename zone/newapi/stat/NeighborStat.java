@@ -21,7 +21,7 @@ import zone.StarZone;
 import zone.newapi.MapClass;
 import zone.newapi.io.StarInputFormat;
 
-class FinalMapClass extends Mapper<LongWritable, Text, LongWritable, IntArrayWritable> {
+class FinalMapClass extends Mapper<LongWritable, Text, LongWritable, LongArrayWritable> {
 	private LongWritable one = new LongWritable(1);
 	@Override
 	public void map(LongWritable key, Text value, Context context)
@@ -33,7 +33,7 @@ class FinalMapClass extends Mapper<LongWritable, Text, LongWritable, IntArrayWri
 			return;
 
 		String nums[] = line.substring(idx + 1).split(" ");
-		IntArrayWritable arr = new IntArrayWritable(nums.length);
+		LongArrayWritable arr = new LongArrayWritable(nums.length);
 		for (int i = 0; i < nums.length; i++) {
 			arr.set(i, new Integer(nums[i]).intValue());
 		}
@@ -41,14 +41,14 @@ class FinalMapClass extends Mapper<LongWritable, Text, LongWritable, IntArrayWri
 	}
 }
 
-class FinalReduceClass extends Reducer<LongWritable, IntArrayWritable, LongWritable, IntArrayWritable> { 
+class FinalReduceClass extends Reducer<LongWritable, LongArrayWritable, LongWritable, LongArrayWritable> { 
 	@Override
-	public void reduce(LongWritable key, Iterable<IntArrayWritable> values,
+	public void reduce(LongWritable key, Iterable<LongArrayWritable> values,
 			Context context) throws IOException, InterruptedException {
-		Iterator<IntArrayWritable> it = values.iterator();
-		IntArrayWritable arr = null;
+		Iterator<LongArrayWritable> it = values.iterator();
+		LongArrayWritable arr = null;
 		while (it.hasNext()) {
-			IntArrayWritable tmp = it.next();
+			LongArrayWritable tmp = it.next();
 			if (arr == null)
 				arr = tmp.clone();
 			else {
@@ -82,7 +82,7 @@ public class NeighborStat {
 		// the keys are words (strings)
 		job.setOutputKeyClass(BlockIDWritable.class);
 		// the values are counts (ints)
-		job.setOutputValueClass(IntArrayWritable.class);		
+		job.setOutputValueClass(LongArrayWritable.class);		
 
 		job.setMapperClass(MapClass.class);
 		job.setReducerClass(ReduceClass.class);
@@ -109,12 +109,12 @@ public class NeighborStat {
 			job.setJobName("NeighborStat2");
 			
 			job.setMapOutputKeyClass(LongWritable.class);
-			job.setMapOutputValueClass(IntArrayWritable.class);
+			job.setMapOutputValueClass(LongArrayWritable.class);
 			
 			// the keys are words (strings)
 			job.setOutputKeyClass(LongWritable.class);
 			// the values are counts (ints)
-			job.setOutputValueClass(IntArrayWritable.class);		
+			job.setOutputValueClass(LongArrayWritable.class);		
 
 			job.setMapperClass(FinalMapClass.class);
 			job.setReducerClass(FinalReduceClass.class);
