@@ -26,6 +26,14 @@ public class IntArrayWritable implements Writable {
 	public void inc(int idx) {
 		array[idx]++;
 	}
+	
+	public void add(IntArrayWritable arr) {
+		if (array.length != arr.array.length)
+			throw new IllegalArgumentException();
+		for (int i = 0; i < array.length; i++) {
+			array[i] += arr.array[i];
+		}
+	}
 
 	@Override
 	public void readFields(DataInput in) throws IOException {
