@@ -15,12 +15,12 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 	Vector<Star> [][] arrstarV;
 	
 	public ReduceClass() {
-		NeighborSearch.init();
+		zone.NeighborSearch.init();
 
-		double bwidth=NeighborSearch.theta; // theta is smaller than any alpha
-		double bheight=NeighborSearch.theta; //dec ,y
-		int x = ((int) (NeighborSearch.zoneHeight / bheight)) + 10;
-		int y = ((int) (NeighborSearch.blockWidth / bwidth)) + 10;
+		double bwidth=zone.NeighborSearch.theta; // theta is smaller than any alpha
+		double bheight=zone.NeighborSearch.theta; //dec ,y
+		int x = ((int) (zone.NeighborSearch.zoneHeight / bheight)) + 10;
+		int y = ((int) (zone.NeighborSearch.blockWidth / bwidth)) + 10;
 		/* add 10 more in each dimension to make sure there is no overflow. */
 		arrstarV=new Vector[x][y]; //create bucket vector[Y][X]
 		
@@ -41,7 +41,7 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 					continue;
 
 				double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
-				if (dist > NeighborSearch.costheta) {
+				if (dist > zone.NeighborSearch.costheta) {
 					p.set (star1, star2, dist);
 					context.write(key, p);
 					p.set (star2, star1, dist);
@@ -59,8 +59,8 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 		//Vector<Star> starV = new Vector<Star>();
 		int buketsizeX=0;
 		int buketsizeY=0;
-		double bwidth=NeighborSearch.maxAlphas[key.zoneNum]; //ra ,x
-		double bheight=NeighborSearch.theta; //dec ,y
+		double bwidth=zone.NeighborSearch.maxAlphas[key.zoneNum]; //ra ,x
+		double bheight=zone.NeighborSearch.theta; //dec ,y
 		
 		int num = 0;
 		Iterator<Star> it = values.iterator();
@@ -72,9 +72,9 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 			s = s.clone();
 			
 			//participant
-			double posx= (s.ra-NeighborSearch.blockRanges[key.raNum][0])/bwidth;
+			double posx= (s.ra-zone.NeighborSearch.blockRanges[key.raNum][0])/bwidth;
 			int x=(int)posx+1; //shit by 1 in case star comes from other block
-			double posy= (s.dec-NeighborSearch.zoneRanges[key.zoneNum][0])/bheight;
+			double posy= (s.dec-zone.NeighborSearch.zoneRanges[key.zoneNum][0])/bheight;
 			int y=(int)posy+1;
 			
 			//set bucket size as max
@@ -108,7 +108,7 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 								continue;
 
 							double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
-							if (dist > NeighborSearch.costheta) {
+							if (dist > zone.NeighborSearch.costheta) {
 								p.set(star1, star2, dist);
 								context.write(key, p);
 								p.set(star2, star1, dist);

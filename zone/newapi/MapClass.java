@@ -17,7 +17,7 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> 
 	PairWritable p = new PairWritable();
 	
 	public MapClass() {
-		NeighborSearch.init();
+		zone.NeighborSearch.init();
 	}
 
 	public void map(LongWritable key, Star value, Context context)
@@ -37,10 +37,10 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> 
 		 * only replicate objects in the border of a block. I expect most of
 		 * objects don't need to be copied.
 		 */
-		if (value.dec > NeighborSearch.zoneRanges[zoneNum][0] + NeighborSearch.theta
-				&& value.dec < NeighborSearch.zoneRanges[zoneNum][1] - NeighborSearch.theta
-				&& value.ra > NeighborSearch.blockRanges[raNum][0] + NeighborSearch.maxAlphas[zoneNum]
-				&& value.ra < NeighborSearch.blockRanges[raNum][1] - NeighborSearch.maxAlphas[zoneNum])
+		if (value.dec > zone.NeighborSearch.zoneRanges[zoneNum][0] + zone.NeighborSearch.theta
+				&& value.dec < zone.NeighborSearch.zoneRanges[zoneNum][1] - zone.NeighborSearch.theta
+				&& value.ra > zone.NeighborSearch.blockRanges[raNum][0] + zone.NeighborSearch.maxAlphas[zoneNum]
+				&& value.ra < zone.NeighborSearch.blockRanges[raNum][1] - zone.NeighborSearch.maxAlphas[zoneNum])
 			return;
 
 		/*
@@ -56,10 +56,10 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> 
 		 */
 		if (loc.zoneNum == 0) {
 			/* copy the object to the right top neighbor */
-			if (value.ra >= NeighborSearch.blockRanges[raNum][1] - NeighborSearch.maxAlphas[zoneNum]
-			     && value.ra <= NeighborSearch.blockRanges[raNum][1]
-			     && value.dec >= NeighborSearch.zoneRanges[zoneNum][1] - NeighborSearch.theta
-			     && value.dec <= NeighborSearch.zoneRanges[zoneNum][1]) {
+			if (value.ra >= zone.NeighborSearch.blockRanges[raNum][1] - zone.NeighborSearch.maxAlphas[zoneNum]
+			     && value.ra <= zone.NeighborSearch.blockRanges[raNum][1]
+			     && value.dec >= zone.NeighborSearch.zoneRanges[zoneNum][1] - zone.NeighborSearch.theta
+			     && value.dec <= zone.NeighborSearch.zoneRanges[zoneNum][1]) {
 //				BlockIDWritable loc1 = new BlockIDWritable();
 				/* raNum of objects in zone 0 is always 0,
 				 * we need to recalculate it. */
@@ -72,10 +72,10 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> 
 ///					output.collect(loc1, p);
 			}
 			return;
-		} else if (loc.zoneNum == NeighborSearch.numZones - 1) {
+		} else if (loc.zoneNum == zone.NeighborSearch.numZones - 1) {
 			/* copy the object to the bottom neighbor */
-			if (value.dec >= NeighborSearch.zoneRanges[zoneNum][0]
-			     && value.dec <= NeighborSearch.zoneRanges[zoneNum][0] + NeighborSearch.theta) {
+			if (value.dec >= zone.NeighborSearch.zoneRanges[zoneNum][0]
+			     && value.dec <= zone.NeighborSearch.zoneRanges[zoneNum][0] + zone.NeighborSearch.theta) {
 				/* raNum of objects in zone zoneNum - 1 is always 0,
 				 * we need to recalculate it. */
 				loc1.raNum = BlockIDWritable.ra2Num(value.ra);
@@ -83,10 +83,10 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> 
 				context.write(loc1, value);
 
 				/* copy the object to the right bottom neighbor */
-				while (value.ra >= NeighborSearch.blockRanges[loc1.raNum][1] - NeighborSearch.maxAlphas[zoneNum]
-				                      							&& value.ra <= NeighborSearch.blockRanges[loc1.raNum][1]) {
+				while (value.ra >= zone.NeighborSearch.blockRanges[loc1.raNum][1] - zone.NeighborSearch.maxAlphas[zoneNum]
+				                      							&& value.ra <= zone.NeighborSearch.blockRanges[loc1.raNum][1]) {
 					loc1.raNum++;
-					if (loc1.raNum == NeighborSearch.numBlocks) {
+					if (loc1.raNum == zone.NeighborSearch.numBlocks) {
 						loc1.raNum = 0;
 						value.ra -= 360;
 					}
@@ -100,8 +100,8 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> 
 		boolean wrap = false;
 		loc1.raNum = loc.raNum;
 		/* copy the object to the right neighbor */
-		while (value.ra >= NeighborSearch.blockRanges[loc1.raNum][1] - NeighborSearch.maxAlphas[zoneNum]
-				&& value.ra <= NeighborSearch.blockRanges[loc1.raNum][1]) {
+		while (value.ra >= zone.NeighborSearch.blockRanges[loc1.raNum][1] - zone.NeighborSearch.maxAlphas[zoneNum]
+				&& value.ra <= zone.NeighborSearch.blockRanges[loc1.raNum][1]) {
 			loc1.raNum++;
 			loc1.zoneNum = loc.zoneNum;
 			/*
@@ -109,21 +109,21 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> 
 			 * be careful. we need to convert ra and raNum if ra is close to
 			 * 360.
 			 */
-			if (loc1.raNum == NeighborSearch.numBlocks) {
+			if (loc1.raNum == zone.NeighborSearch.numBlocks) {
 				loc1.raNum = 0;
 				value.ra -= 360;
 				wrap = true;
 			}
 			context.write(loc1, value);
 			/* copy the object to the right bottom neighbor */
-			if (value.dec >= NeighborSearch.zoneRanges[zoneNum][0]
-					&& value.dec <= NeighborSearch.zoneRanges[zoneNum][0] + NeighborSearch.theta) {
+			if (value.dec >= zone.NeighborSearch.zoneRanges[zoneNum][0]
+					&& value.dec <= zone.NeighborSearch.zoneRanges[zoneNum][0] + zone.NeighborSearch.theta) {
 				loc1.zoneNum = loc.zoneNum - 1;
 				context.write(loc1, value);
 			}
 			/* copy the object to the right top neighbor */
-			if (value.dec >= NeighborSearch.zoneRanges[zoneNum][1] - NeighborSearch.theta
-					&& value.dec <= NeighborSearch.zoneRanges[zoneNum][1]) {
+			if (value.dec >= zone.NeighborSearch.zoneRanges[zoneNum][1] - zone.NeighborSearch.theta
+					&& value.dec <= zone.NeighborSearch.zoneRanges[zoneNum][1]) {
 				loc1.zoneNum = loc.zoneNum + 1;
 				context.write(loc1, value);
 			}
@@ -133,8 +133,8 @@ public class MapClass extends Mapper<LongWritable, Star, BlockIDWritable, Star> 
 		}
 
 		/* copy the object to the bottom neighbor */
-		if (value.dec >= NeighborSearch.zoneRanges[zoneNum][0]
-				&& value.dec <= NeighborSearch.zoneRanges[zoneNum][0] + NeighborSearch.theta) {
+		if (value.dec >= zone.NeighborSearch.zoneRanges[zoneNum][0]
+				&& value.dec <= zone.NeighborSearch.zoneRanges[zoneNum][0] + zone.NeighborSearch.theta) {
 			loc1.raNum = loc.raNum;
 			loc1.zoneNum = loc.zoneNum - 1;
 			if (loc1.zoneNum == 0)

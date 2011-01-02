@@ -19,10 +19,10 @@ public class NeighborSearch {
 	static public double theta = 1.0/60.0;
 	static public double blockWidth = 360.0 / numBlocks;
 	static public double zoneHeight = 180.0 / numZones;
-	static private double blockRanges[][] = new double[numBlocks][2];
-	static private double zoneRanges[][] = new double[numZones][2];
-	static private double maxAlphas[] = new double[numZones];
-	static private double costheta = Math.cos(Math.toRadians(theta));
+	static public double blockRanges[][] = new double[numBlocks][2];
+	static public double zoneRanges[][] = new double[numZones][2];
+	static public double maxAlphas[] = new double[numZones];
+	static public double costheta = Math.cos(Math.toRadians(theta));
 	
 	static public double calAlpha(double theta, double dec) {
 		if (Math.abs(dec) + theta > 89.9)
