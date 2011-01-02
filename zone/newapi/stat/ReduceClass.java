@@ -11,7 +11,7 @@ import zone.Star;
 import zone.newapi.NeighborSearch;
 
 public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable, LongArrayWritable> { 
-	static final int numStat = 60;
+	static final int numStat = (int) (NeighborSearch.theta * 3600);
 	
 	Vector<Star> [][] arrstarV;
 	
@@ -41,13 +41,16 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 				if (star1.margin && star2.margin)
 					continue;
 
-				// it's in arcseconds.
-				double dist = Math.toDegrees(Math.acos(star1.x
-						* star2.x + star1.y * star2.y + star1.z * star2.z)) * 3600;
-				if (dist >= numStat)
-					continue;
-				for (int k = (int) dist; k < numStat; k++)
-					arr.inc(k + 1);
+				double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
+				if (dist > NeighborSearch.costheta) {
+					// it's in arcseconds.
+					double dist1;
+					if (dist < 1)
+						dist1 = Math.toDegrees(Math.acos(dist)) * 3600;
+					else
+						dist1 = 0;
+					arr.inc ((int) dist1 + 1);
+				}
 			}
 		}//end for i,j
 	}
@@ -111,12 +114,15 @@ public class ReduceClass extends Reducer<BlockIDWritable, Star, BlockIDWritable,
 								continue;
 
 							double dist = star1.x * star2.x + star1.y * star2.y + star1.z * star2.z;
-							// it's in arcseconds.
-							dist = Math.toDegrees(Math.acos(dist)) * 3600;
-							if (dist >= numStat)
-								continue;
-							for (int k = (int) dist; k < numStat; k++)
-								arr.inc(k + 1);
+							if (dist > NeighborSearch.costheta) {
+								// it's in arcseconds.
+								double dist1;
+								if (dist < 1)
+									dist1 = Math.toDegrees(Math.acos(dist)) * 3600;
+								else
+									dist1 = 0;
+								arr.inc ((int) dist1 + 1);
+							}
 						}
 					}//end for i,j
 				
